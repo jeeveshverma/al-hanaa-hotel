@@ -70,9 +70,14 @@ QA helpers (dev server running): `node scripts/qa.mjs audit / /ar/ /rooms/ --dev
 
 ## Deploy
 
-Pushing to `main` builds and deploys through `.github/workflows/deploy.yml` (GitHub Pages,
-source "GitHub Actions"). The site lives under the `/al-hanaa-hotel` base path
-(`astro.config.mjs`).
+`scripts/deploy.sh` builds the site and force-pushes `dist/` to the `gh-pages` branch, which
+GitHub Pages serves (Settings → Pages → source: branch `gh-pages`, `/`). Run it after every
+change you want live. The site lives under the `/al-hanaa-hotel` base path (`astro.config.mjs`).
+
+A GitHub Actions workflow that builds on every push to `main` is kept in
+`deploy/github-actions-pages.yml`; to use it instead, copy it to `.github/workflows/deploy.yml`
+(the pushing token needs the `workflow` scope: `gh auth refresh -s workflow`) and switch the
+Pages source to "GitHub Actions".
 
 **Custom domain later**: set `site` in `astro.config.mjs` and `url` in `src/data/site.ts`,
 remove `base`, add `public/CNAME` with the domain, then point DNS at GitHub Pages

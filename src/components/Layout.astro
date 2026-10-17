@@ -7,7 +7,6 @@ import '@fontsource/tajawal/400.css';
 import '@fontsource/tajawal/500.css';
 import '@fontsource/tajawal/700.css';
 import '@fontsource/amiri/400.css';
-import '@fontsource/amiri/700.css';
 import '../styles/global.css';
 import { LANGS, PAGES, path, switchLang, useT, dirOf, type Lang, type PageKey } from '../i18n';
 import { SITE } from '../data/site';
@@ -15,8 +14,8 @@ import { waUrl, telUrl } from '../lib/wa';
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
 
-interface Props { lang: Lang; page: PageKey; sub?: string; title: string; desc: string; overHero?: boolean; jsonld?: object[]; noindex?: boolean; ogImage?: string }
-const { lang, page, sub = '', title, desc, overHero = false, jsonld = [], noindex = false } = Astro.props;
+interface Props { lang: Lang; page: PageKey; sub?: string; title: string; desc: string; overHero?: boolean; jsonld?: object[]; noindex?: boolean; ogImage?: string; preload?: { href: string; srcset?: string; sizes?: string } }
+const { lang, page, sub = '', title, desc, overHero = false, jsonld = [], noindex = false, preload } = Astro.props;
 const { t } = useT(lang);
 const L = LANGS.find((l) => l.code === lang)!;
 const abs = (p: string) => new URL(p, SITE.url + '/').href.replace(/([^:])\/\//g, '$1/');
@@ -68,6 +67,7 @@ const hotel = {
   <meta name="theme-color" content="#f6f1e8" />
   <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
   <link rel="apple-touch-icon" href={`${import.meta.env.BASE_URL}apple-touch-icon.png`} />
+  {preload && <link rel="preload" as="image" href={preload.href} imagesrcset={preload.srcset} imagesizes={preload.sizes} fetchpriority="high" />}
   <script is:inline>document.documentElement.classList.replace('no-js', 'js')</script>
   <script type="application/ld+json" set:html={JSON.stringify(hotel)} />
   {jsonld.map((j) => <script type="application/ld+json" set:html={JSON.stringify(j)} />)}
@@ -78,13 +78,13 @@ const hotel = {
 
   <header class:list={['hdr', overHero && 'hdr-over']} id="hdr">
     <div class="wrap hdr-in">
-      <a class="hdr-logo" href={path(lang, 'home')} aria-label={SITE.name[lang]}>
+      <a class="hdr-logo" href={path(lang, 'home')}>
         <Logo variant="lockup" lang={lang} size={38} />
       </a>
       <nav class="hdr-nav" id="nav" aria-label="Main">
         <ul>
           {nav.map(([p, label]) => <li><a href={path(lang, p)} aria-current={p === page ? 'page' : undefined}>{label}</a></li>)}
-          <li class="nav-lang"><a href={switchLang(lang, page, sub)} lang={other.hreflang} hreflang={other.hreflang} aria-label={t('nav.langLabel')}>{t('nav.lang')}</a></li>
+          <li class="nav-lang"><a href={switchLang(lang, page, sub)} lang={other.hreflang} hreflang={other.hreflang} title={t('nav.langLabel')}>{t('nav.lang')}</a></li>
         </ul>
         <div class="nav-foot">
           <a class="btn btn-wa" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /> {t('hero.cta')}</a>
@@ -92,7 +92,7 @@ const hotel = {
         </div>
       </nav>
       <div class="hdr-actions">
-        <a class="hdr-lang" href={switchLang(lang, page, sub)} lang={other.hreflang} hreflang={other.hreflang} aria-label={t('nav.langLabel')}>{t('nav.lang')}</a>
+        <a class="hdr-lang" href={switchLang(lang, page, sub)} lang={other.hreflang} hreflang={other.hreflang} title={t('nav.langLabel')}>{t('nav.lang')}</a>
         <a class="btn btn-wa hdr-wa" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /><span>{t('nav.enquire')}</span></a>
         <button class="hdr-burger" id="burger" aria-expanded="false" aria-controls="nav" aria-label={t('nav.menu')}>
           <Icon name="menu" class="i-open" size={24} /><Icon name="close" class="i-close" size={24} />
@@ -223,7 +223,7 @@ const hotel = {
   }
 
   .ftr { background: var(--night); color: #cfc5b8; padding-block: 56px 28px; margin-top: clamp(40px, 8vw, 96px); position: relative; z-index: 1; }
-  .ftr .logo-name { color: var(--cream); } .ftr .logo-sub { color: var(--gold-light); }
+  .ftr .logo-stack .logo-name { color: var(--cream); } .ftr .logo-stack .logo-sub { color: var(--gold-light); }
   .ftr-in { display: grid; gap: 32px; }
   .ftr-col p { margin: 0 0 8px; }
   .ftr-col a { color: var(--cream); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }

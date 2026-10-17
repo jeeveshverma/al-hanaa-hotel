@@ -9,7 +9,7 @@
   --gold-text: #8a6a24;
   --ink: #2b2520;
   --body: #4a413a;
-  --muted: #7a6f65;
+  --muted: #6b6058;
   --line: #e2d8c6;
   --taupe: #a08b75;
   --night: #1f1a16;
@@ -29,6 +29,7 @@
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   --shadow: 0 24px 60px -30px rgba(43, 37, 32, 0.45), 0 2px 6px rgba(43, 37, 32, 0.06);
 }
+html[lang='en'] [lang='ar'] { font-family: 'Tajawal', 'Noto Sans Arabic', system-ui, sans-serif; }
 html[lang='ar'] {
   --display: 'Amiri', 'Noto Naskh Arabic', 'Times New Roman', serif;
   --sans: 'Tajawal', 'Noto Sans Arabic', system-ui, 'Segoe UI', Tahoma, sans-serif;

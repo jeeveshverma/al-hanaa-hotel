@@ -81,6 +81,7 @@ const list = [...REVIEWS].sort((a, b) => Number(b.lang === lang) - Number(a.lang
   .rvw-quote::before { content: '“'; color: var(--gold-light); }
   .rvw-quote::after { content: '”'; color: var(--gold-light); }
   .rvw-item[lang='ar'] .rvw-quote { font-family: 'Amiri', serif; font-style: normal; }
+  html[lang='en'] .rvw-item[lang='ar'] .rvw-quote { font-family: 'Tajawal', sans-serif; font-weight: 500; }
   .rvw-item[lang='ar'] .rvw-quote::before { content: '«'; } .rvw-item[lang='ar'] .rvw-quote::after { content: '»'; }
   .rvw-item footer { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; color: rgba(246, 241, 232, 0.75); font-size: 0.95rem; }
   .rvw-name { color: var(--gold-light); font-weight: 600; }
