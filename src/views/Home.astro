@@ -1,0 +1,260 @@
+---
+import Layout from '../components/Layout.astro';
+import Img from '../components/Img.astro';
+import Icon from '../components/Icon.astro';
+import Lattice from '../components/Lattice.astro';
+import RoomCard from '../components/RoomCard.astro';
+import Filmstrip from '../components/Filmstrip.astro';
+import Reviews from '../components/Reviews.astro';
+import MapSection from '../components/MapSection.astro';
+import Khareef from '../components/Khareef.astro';
+import Instagram from '../components/Instagram.astro';
+import Landmark from '../components/Landmark.astro';
+import EnquiryForm from '../components/EnquiryForm.astro';
+import { PLACES } from '../data/places';
+import { fromHotel, fmtKm } from '../lib/geo';
+import { path, useT, digits, type Lang } from '../i18n';
+import { SITE, ROOMS } from '../data/site';
+import { waUrl } from '../lib/wa';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const { t } = useT(lang);
+const wa = waUrl(t('enquire.waIntro'));
+const facts = [t('facts.street'), t('facts.centre'), t('facts.stays'), t('facts.reply')];
+const whys = ['clean', 'central', 'parking', 'wifi', 'staff', 'long'] as const;
+const whyIcon = { clean: 'towel', central: 'pin', parking: 'parking', wifi: 'wifi', staff: 'users', long: 'calendar' } as const;
+const strip = ['suite-living-a', 'exterior-night', 'twin-a', 'corridor', 'double-velvet', 'bathroom-shower', 'flat-living', 'stairwell', 'family-room', 'suite-sofa'];
+const teaser = ['haffa', 'souq', 'darbat', 'mughsail'].map((id) => PLACES.find((p) => p.id === id)!).map((p) => { const g = fromHotel(p.at); return { ...p, kmText: fmtKm(g.km, lang), mins: g.mode === 'foot' ? t('salalah.onFoot', { min: g.min }) : t('salalah.byCar', { min: g.min }) }; });
+---
+<Layout lang={lang} page="home" title={t('meta.home.title')} desc={t('meta.home.desc')} overHero>
+  <!-- 01 Hero -->
+  <section class="hero" id="top">
+    <div class="hero-photo">
+      <Img id="suite-bed-a" lang={lang} priority sizes="(min-width: 960px) 52vw, 100vw" widths={[480, 720, 940]} position="60% 22%" />
+    </div>
+    <div class="hero-veil" aria-hidden="true"></div>
+    <div class="wrap hero-in">
+      <p class="eyebrow hero-eyebrow">{t('hero.eyebrow')}</p>
+      <h1 class="hero-title">{t('hero.title')}</h1>
+      <p class="hero-ar" lang={lang === 'ar' ? 'en' : 'ar'} dir={lang === 'ar' ? 'ltr' : 'rtl'}>{lang === 'ar' ? 'Al‑Hanaa Hotel · Salalah' : 'فندق الهناء · صلالة'}</p>
+      <p class="hero-lead">{t('hero.lead')}</p>
+      <div class="hero-cta">
+        <a class="btn btn-wa btn-lg" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /> {t('hero.cta')}</a>
+        <a class="btn btn-ghost hero-rooms" href={path(lang, 'rooms')}>{t('hero.ctaRooms')} <Icon name="arrowRight" size={18} class="rtl-flip" /></a>
+      </div>
+      <p class="caption hero-cap">{t('hero.photoCaption')}</p>
+    </div>
+  </section>
+
+  <!-- facts strip -->
+  <div class="wrap">
+    <ul class="facts" aria-label="Facts">
+      {facts.map((f) => <li>{f}</li>)}
+    </ul>
+  </div>
+  <Khareef lang={lang} />
+
+  <!-- 02 Rooms -->
+  <section class="section" id="rooms">
+    <div class="wrap">
+      <div class="section-head rv">
+        <span class="num">{digits('01', lang)}</span>
+        <h2>{t('sections.rooms')}</h2>
+        <p class="lead">{t('rooms.intro')}</p>
+      </div>
+      <div class="rooms-grid">
+        {ROOMS.slice(0, 3).map((r, i) => <RoomCard id={r.id} hero={r.hero} lang={lang} index={i} size={i === 1 ? 'wide' : 'tall'} />)}
+      </div>
+      <p class="rooms-all rv"><a class="btn btn-gold" href={path(lang, 'rooms')}>{t('rooms.all')} <Icon name="arrowRight" size={18} class="rtl-flip" /></a></p>
+    </div>
+  </section>
+
+  <Lattice />
+
+  <!-- 03 Why -->
+  <section class="section" id="why">
+    <div class="wrap why">
+      <div class="why-text">
+        <div class="section-head rv">
+          <span class="num">{digits('02', lang)}</span>
+          <h2>{t('sections.why')}</h2>
+        </div>
+        <dl class="why-list">
+          {whys.map((w, i) => (
+            <div class={`why-item rv rv-d${(i % 3) + 1}`}>
+              <dt><Icon name={whyIcon[w]} size={22} /> {t(`why.${w}.t`)}</dt>
+              <dd>{t(`why.${w}.d`)}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+      <div class="why-photos">
+        <div class="frame rv"><Img id="suite-living-a" lang={lang} ratio="4 / 5" sizes="(min-width: 960px) 34vw, 70vw" /></div>
+        <div class="frame rv rv-d2"><Img id="bathroom-basin" lang={lang} ratio="1 / 1" sizes="(min-width: 960px) 20vw, 45vw" /></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 Renovation -->
+  <section class="section reno" id="renovation">
+    <div class="wrap reno-in">
+      <div class="reno-photo reno-a rv"><Img id="corridor" lang={lang} ratio="3 / 4" sizes="(min-width: 960px) 30vw, 60vw" /><p class="caption">{t('renovation.captionCorridor')}</p></div>
+      <div class="reno-text rv rv-d1">
+        <span class="num">{digits('03', lang)}</span>
+        <h2>{t('renovation.title')}</h2>
+        <p class="lead">{t('renovation.text')}</p>
+      </div>
+      <div class="reno-photo reno-b rv rv-d2"><Img id="stairwell" lang={lang} ratio="4 / 3" sizes="(min-width: 960px) 38vw, 80vw" /><p class="caption">{t('renovation.captionStairs')}</p></div>
+    </div>
+  </section>
+
+  <!-- 05 Gallery filmstrip -->
+  <section class="section gal" id="gallery">
+    <div class="wrap">
+      <div class="section-head rv">
+        <span class="num">{digits('04', lang)}</span>
+        <h2>{t('sections.gallery')}</h2>
+        <p class="lead">{t('gallery.intro')}</p>
+      </div>
+    </div>
+    <Filmstrip items={strip} lang={lang} id="home-strip" height={440} />
+    <div class="wrap"><p class="gal-more rv"><a class="btn btn-gold" href={path(lang, 'gallery')}>{t('nav.gallery')} <Icon name="arrowRight" size={18} class="rtl-flip" /></a></p></div>
+  </section>
+
+  <!-- 06 Reviews -->
+  <Reviews lang={lang} />
+
+  <!-- 07 Salalah teaser -->
+  <section class="section sal">
+    <div class="wrap">
+      <div class="section-head rv">
+        <span class="num">{digits('05', lang)}</span>
+        <h2>{t('sections.salalah')}</h2>
+        <p class="lead">{t('salalah.intro')}</p>
+      </div>
+      <ul class="sal-list">
+        {teaser.map((p, i) => (
+          <li class={`rv rv-d${(i % 3) + 1}`}>
+            <Landmark name={p.art} size={64} />
+            <div><strong>{p.name[lang]}</strong><p class="small muted">{t('salalah.distance', { km: p.kmText })} · {p.mins}</p></div>
+          </li>
+        ))}
+      </ul>
+      <p class="rv"><a class="btn btn-ghost" href={path(lang, 'salalah')}>{t('nav.salalah')} <Icon name="arrowRight" size={18} class="rtl-flip" /></a></p>
+    </div>
+  </section>
+
+  <!-- 08 Map -->
+  <MapSection lang={lang} compact />
+
+  <Lattice />
+
+  <!-- 09 Instagram -->
+  <Instagram lang={lang} />
+
+  <!-- 10 Enquire -->
+  <section class="section enq-home" id="enquire">
+    <div class="wrap enq-home-in">
+      <div class="enq-home-text">
+        <div class="section-head rv">
+          <span class="num">{digits('06', lang)}</span>
+          <h2>{t('enquire.title')}</h2>
+          <p class="lead">{t('enquire.text')}</p>
+        </div>
+        <blockquote class="note rv"><p>{t('enquire.note')}</p><footer>— {t('enquire.noteSign')}</footer></blockquote>
+      </div>
+      <div class="rv rv-d1"><EnquiryForm lang={lang} /></div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* ---- hero: full-bleed photo on phones, split on desktop ---- */
+  .hero { position: relative; min-height: 100svh; display: grid; align-items: end; color: var(--cream); isolation: isolate; overflow: hidden; }
+  .hero-photo { position: absolute; inset: 0; z-index: -2; }
+  .hero-photo :global(.photo) { height: 100%; border-radius: 0; }
+  .hero-photo :global(img) { height: 100%; width: 100%; object-fit: cover; animation: pan 26s var(--ease) both; transform-origin: 60% 60%; }
+  @keyframes pan { from { transform: scale(1.08); } to { transform: scale(1); } }
+  .hero-veil { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(31, 26, 22, 0.42) 0%, rgba(31, 26, 22, 0.05) 26%, rgba(31, 26, 22, 0.38) 48%, rgba(31, 26, 22, 0.88) 100%); }
+  .hero-in { padding-top: calc(var(--header-h) + 24px); padding-bottom: 28px; display: grid; gap: 12px; }
+  .hero-eyebrow { color: var(--gold-light); }
+  .hero-title { color: var(--cream); font-size: clamp(2.5rem, 10.5vw, 4.4rem); max-width: 10em; text-wrap: balance; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
+  html[lang='ar'] .hero-title { font-size: clamp(2.2rem, 9vw, 3.8rem); max-width: 14em; }
+  .hero-ar { font-family: 'Amiri', serif; font-size: 1.35rem; color: var(--gold-light); margin: 0; opacity: 0.95; }
+  html[lang='ar'] .hero-ar { font-family: 'Cormorant Garamond', serif; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.95rem; }
+  .hero-lead { max-width: 30em; color: rgba(246, 241, 232, 0.92); margin: 0; font-size: 1.02rem; text-shadow: 0 1px 2px rgba(0,0,0,.3); }
+  .hero-cta { display: grid; gap: 8px; margin-top: 8px; }
+  .hero-rooms { color: var(--cream); text-decoration-color: var(--gold-light); justify-content: start; }
+  .hero-cap { color: rgba(246, 241, 232, 0.7); font-size: 0.92rem; margin: 6px 0 0; }
+  @media (prefers-reduced-motion: reduce) { .hero-photo :global(img) { animation: none; } }
+
+  @media (min-width: 960px) {
+    .hero { grid-template-columns: 1fr 1fr; align-items: center; min-height: 100vh; color: var(--ink); background: var(--cream); }
+    .hero-photo { position: relative; inset: auto; grid-column: 2; z-index: 0; height: 100vh; }
+    .hero-photo :global(.photo) { height: 100%; }
+    .hero-veil { display: block; grid-column: 2; grid-row: 1; position: relative; inset: auto; z-index: 1; background: linear-gradient(180deg, rgba(31, 26, 22, 0.55) 0%, rgba(31, 26, 22, 0) 22%); pointer-events: none; }
+    .hero-veil { position: absolute; inset: 0; left: 50%; }
+    html[dir='rtl'] .hero-veil { left: 0; right: 50%; }
+    .hero-in { grid-column: 1; grid-row: 1; padding-top: calc(var(--header-h) + 40px); padding-bottom: 56px; padding-inline: var(--gutter); max-width: 640px; margin-inline-start: auto; margin-inline-end: 0; width: 100%; }
+    .hero-eyebrow { color: var(--gold-text); }
+    .hero-title { color: var(--ink); font-size: clamp(3.4rem, 5.2vw, 5.4rem); }
+    .hero-ar { color: var(--gold-text); font-size: 1.6rem; }
+    .hero-lead { color: var(--body); font-size: 1.12rem; }
+    .hero-cta { grid-auto-flow: column; justify-content: start; align-items: center; gap: 18px; }
+    .hero-rooms { color: var(--ink); }
+    .hero-cap { color: var(--muted); }
+  }
+
+  .facts { list-style: none; margin: 0; padding: 18px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; border-bottom: 1px solid var(--line); }
+  .facts li { font-size: 0.85rem; letter-spacing: 0.04em; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+  .facts li::before { content: ''; width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); flex: none; }
+  @media (min-width: 720px) { .facts { grid-template-columns: repeat(4, 1fr); padding: 22px 0; } .facts li { font-size: 0.92rem; } }
+
+  .rooms-grid { display: grid; gap: 40px; }
+  .rooms-all { margin-top: 36px; }
+  @media (min-width: 720px) {
+    .rooms-grid { grid-template-columns: repeat(12, 1fr); gap: 32px; align-items: start; }
+    .rooms-grid > :global(:nth-child(1)) { grid-column: 1 / 6; }
+    .rooms-grid > :global(:nth-child(2)) { grid-column: 7 / 13; margin-top: 96px; }
+    .rooms-grid > :global(:nth-child(3)) { grid-column: 3 / 8; margin-top: -24px; }
+  }
+
+  .why { display: grid; gap: 40px; }
+  .why-list { margin: 0; display: grid; gap: 22px; }
+  .why-item dt { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-size: 1.45rem; color: var(--ink); }
+  html[lang='ar'] .why-item dt { font-family: var(--sans); font-weight: 500; font-size: 1.25rem; }
+  .why-item dt :global(.icon) { color: var(--gold); }
+  .why-item dd { margin: 4px 0 0 32px; color: var(--body); }
+  html[dir='rtl'] .why-item dd { margin: 4px 32px 0 0; }
+  .why-photos { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; align-items: end; }
+  .why-photos > :nth-child(2) { margin-bottom: 48px; }
+  @media (min-width: 960px) { .why { grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; } .why-list { grid-template-columns: 1fr 1fr; gap: 28px 32px; } }
+
+  .gal-more { margin-top: 28px; }
+  .sal-list { list-style: none; margin: 0 0 24px; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .sal-list li { display: grid; gap: 8px; }
+  .sal-list strong { font-family: var(--display); font-size: 1.3rem; color: var(--ink); font-weight: 500; display: block; }
+  html[lang='ar'] .sal-list strong { font-family: var(--sans); font-weight: 600; font-size: 1.1rem; }
+  .sal-list p { margin: 2px 0 0; }
+  @media (min-width: 720px) { .sal-list { grid-template-columns: repeat(4, 1fr); gap: 32px; } }
+  .enq-home { background: var(--paper); }
+  .enq-home-in { display: grid; gap: 32px; }
+  .note { margin: 0; padding: 0 0 0 18px; border-inline-start: 2px solid var(--gold); font-family: var(--display); font-size: 1.3rem; color: var(--ink); line-height: 1.4; }
+  html[dir='rtl'] .note { padding: 0 18px 0 0; }
+  html[lang='ar'] .note { font-family: var(--sans); font-size: 1.1rem; font-weight: 500; }
+  .note p { margin: 0 0 8px; }
+  .note footer { font-family: var(--sans); font-size: 0.85rem; color: var(--muted); letter-spacing: 0.06em; }
+  @media (min-width: 960px) { .enq-home-in { grid-template-columns: 1fr 1.1fr; gap: 72px; align-items: start; } }
+  .reno { background: var(--paper); }
+  .reno-in { display: grid; gap: 32px; }
+  .reno-photo .caption { margin: 10px 0 0; }
+  .reno-a { width: 70%; }
+  .reno-b { width: 88%; margin-inline-start: auto; }
+  .reno-text { display: grid; gap: 12px; max-width: 34em; }
+  @media (min-width: 960px) {
+    .reno-in { grid-template-columns: repeat(12, 1fr); align-items: center; }
+    .reno-a { grid-column: 1 / 5; width: 100%; }
+    .reno-text { grid-column: 5 / 9; padding-inline: 24px; }
+    .reno-b { grid-column: 9 / 13; width: 100%; margin-top: 120px; }
+  }
+</style>

@@ -1,0 +1,114 @@
+{
+  "meta": {
+    "home": { "title": "Al Hanaa Hotel, Salalah — renovated rooms in the city centre", "desc": "Al Hanaa Hotel on 23rd July Street, central Salalah: newly renovated rooms, suites and flats for daily, monthly and yearly stays. Enquire on WhatsApp." },
+    "rooms": { "title": "Rooms & flats — Al Hanaa Hotel Salalah", "desc": "Suites, double and twin rooms, family rooms and flats in the heart of Salalah. See the photos and enquire on WhatsApp." },
+    "gallery": { "title": "Photos — Al Hanaa Hotel Salalah", "desc": "Every photo of Al Hanaa Hotel's renovated rooms, suites, corridors and the entrance on 23rd July Street, Salalah." },
+    "salalah": { "title": "Salalah from Al Hanaa Hotel — beaches, souq, khareef", "desc": "What is near Al Hanaa Hotel: Al Haffa beach, Al Husn Souq, Sultan Qaboos Mosque, Wadi Darbat and the khareef hills, with distances from the hotel." },
+    "enquire": { "title": "Enquire — Al Hanaa Hotel Salalah", "desc": "Send your dates and room style to Al Hanaa Hotel on WhatsApp, or call. 23rd July Street, Salalah." },
+    "notfound": { "title": "Page not found — Al Hanaa Hotel", "desc": "That page does not exist." }
+  },
+  "nav": {
+    "skip": "Skip to content",
+    "home": "Home", "rooms": "Rooms & flats", "gallery": "Photos", "salalah": "Salalah", "enquire": "Enquire",
+    "menu": "Menu", "close": "Close", "lang": "العربية", "langLabel": "Switch language",
+    "whatsapp": "WhatsApp", "call": "Call"
+  },
+  "hero": {
+    "eyebrow": "23rd July Street · Salalah",
+    "title": "A quiet, renovated hotel in the heart of Salalah",
+    "lead": "Rooms, suites and flats for a night, a month or a year — two minutes from the bus station, close to the souq and the beach.",
+    "cta": "Enquire on WhatsApp",
+    "ctaRooms": "See the rooms",
+    "photoCaption": "The suite — king bed under the cove-lit ceiling, sitting room through the door"
+  },
+  "facts": {
+    "street": "23rd July Street", "centre": "City centre", "stays": "Daily · monthly · yearly", "reply": "Replies on WhatsApp"
+  },
+  "sections": {
+    "rooms": "Rooms & flats", "why": "Why guests come back", "renovation": "The renovation", "gallery": "Photos", "reviews": "In guests' words", "salalah": "Salalah from here", "map": "Where we are", "instagram": "On Instagram", "enquire": "Enquire"
+  },
+  "rooms": {
+    "intro": "Every room was refitted recently: new beds, LED-lit ceilings, marble bathrooms. Pick the style that suits you and tell us your dates.",
+    "all": "All rooms & flats",
+    "enquireFor": "Enquire about the {room}",
+    "stay": "Daily, monthly or yearly stays",
+    "bathroom": "In your bathroom",
+    "bathroomText": "Marble-clad rain shower, a granite basin with the tea tray and kettle, fresh towel sets on every bed.",
+    "walk": "Walk through",
+    "suite": { "name": "Suite", "short": "Bedroom plus sitting room", "desc": "A king bed under a cove-lit ceiling, with a separate sitting room through the door: a wingback armchair, a low table for coffee and a round rug. The sofa room has a door back to the bedroom, so two can share without being in each other's way.", "steps": ["Through the door: the king bed under the LED cove", "The sitting room with the clock and the wingback chair", "A second sofa room opens off the bedroom", "The marble rain shower"] },
+    "double": { "name": "Double room", "short": "One wide bed, a place to sit", "desc": "A wide double bed with a ribbed velvet headboard, curtains to the floor, and in most rooms two tub chairs with a small wooden table. Soft cove lighting, a pouf by the window, split air conditioning.", "steps": ["The wide bed with the velvet headboard", "Two tub chairs and the wooden table", "Cove-lit wall by the curtains", "The marble rain shower"] },
+    "twin": { "name": "Twin room", "short": "Two single beds", "desc": "Two single beds with towel sets laid out, a geometric rug, a full-height wardrobe and a desk with a kettle. One version has textured wallpaper, the other white walls and a round mirror.", "steps": ["Two beds, towels folded on each", "The open wardrobe and the rug", "The white-walled twin with the desk", "The round mirror"] },
+    "family": { "name": "Family room", "short": "The larger room", "desc": "A larger room with the bed set back, a pouf and a round table, and a doorway to a second space. Spotlit ceiling, plenty of floor for luggage and children.", "steps": ["The big room from the door", "The bed by the curtains", "The marble rain shower"] },
+    "flat": { "name": "Flat", "short": "Living room and bedroom", "desc": "A living room with a grey sofa, a black coffee table and a television wall unit, and a bedroom with a wood-panelled wall and a blue rug. Taken by the month or the year as much as by the night.", "steps": ["The living room with the sofa", "The bedroom with the wood-panelled wall", "The television wall unit", "The basin with the tea tray"] }
+  },
+  "why": {
+    "clean": { "t": "Clean and new", "d": "Guests mention the cleanliness first. The rooms were refitted recently and it shows." },
+    "central": { "t": "In the centre", "d": "On 23rd July Street: the bus station on foot, the souq and the corniche a short drive." },
+    "parking": { "t": "Parking at the door", "d": "Park in front of the entrance; the arcade keeps the cars out of the sun." },
+    "wifi": { "t": "Fast Wi‑Fi", "d": "Good enough to work from the room — guests who stayed for months say so." },
+    "staff": { "t": "Friendly front desk", "d": "A small team that answers on WhatsApp and remembers your name." },
+    "long": { "t": "Long stays welcome", "d": "Daily, monthly and yearly — rooms and flats for people who are here for a while." }
+  },
+  "renovation": {
+    "title": "Refitted from the corridor in",
+    "text": "The corridors got marble floors and a line of light along the walls; the stairwell a cluster of pendant lamps and gold discs. Every room was done the same way: new beds, cove ceilings, marble bathrooms. The building is the same one that has stood on 23rd July Street for years — it just looks different inside.",
+    "captionCorridor": "The guest corridor",
+    "captionStairs": "The stairwell"
+  },
+  "gallery": {
+    "intro": "Swipe through the rooms, the corridors and the street outside.",
+    "all": "All", "roomsFilter": "Rooms", "spaces": "Spaces", "outside": "Outside", "bathroom": "Bathrooms",
+    "counter": "{n} / {total}", "open": "Open photo", "close": "Close", "prev": "Previous photo", "next": "Next photo", "drag": "Drag"
+  },
+  "reviews": {
+    "title": "In guests' words",
+    "source": "Reviews on Google",
+    "prev": "Previous review", "next": "Next review", "pause": "Pause", "play": "Play"
+  },
+  "khareef": {
+    "now": "It's khareef season — Salalah's hills are green and the mist is in.",
+    "soon": "Khareef season starts in {days} days.",
+    "later": "Next khareef: late June to early September."
+  },
+  "salalah": {
+    "intro": "Salalah is the only corner of Arabia with a monsoon. From late June the hills behind the city turn green; the rest of the year it is beaches, frankincense and souqs. All of it is close.",
+    "distance": "{km} km", "fromHotel": "from the hotel", "byCar": "{min} min by car", "onFoot": "{min} min on foot",
+    "directions": "Directions", "howTo": "How to reach us",
+    "byAir": "From Salalah Airport: a short taxi ride.", "byBus": "From the bus station: the hotel is a few minutes' walk.", "byRoad": "By road from Muscat: around 10 hours on the Route 31 highway."
+  },
+  "map": {
+    "title": "Where we are",
+    "text": "23rd July Street, in the centre of Salalah. Tap a place to see how far it is and in which direction.",
+    "open": "Open in Google Maps", "interactive": "Open interactive map", "bearing": "{dir} of the hotel",
+    "n": "north", "ne": "north-east", "e": "east", "se": "south-east", "s": "south", "sw": "south-west", "w": "west", "nw": "north-west"
+  },
+  "instagram": {
+    "title": "On Instagram",
+    "text": "The hotel posts the rooms, the sign at night and the odd khareef morning.",
+    "follow": "Follow @{handle}", "followers": "{n} followers", "reel": "Watch reel"
+  },
+  "enquire": {
+    "title": "Tell us your dates",
+    "text": "Send the details below to the hotel on WhatsApp. The front desk replies in English or Arabic.",
+    "note": "We're on 23rd July Street, a few minutes' walk from the bus station. Write to us with your dates and we will come back to you on WhatsApp — for a night, a month or a year.",
+    "noteSign": "The front desk, Al Hanaa Hotel",
+    "stayType": "Stay", "daily": "Nights", "monthly": "Monthly", "yearly": "Yearly",
+    "checkin": "Check-in", "checkout": "Check-out", "movein": "Move-in date", "duration": "How long",
+    "months": "{n} months", "years": "{n} years",
+    "nights": "{n} nights", "night": "1 night",
+    "room": "Room style", "roomAny": "Any — advise me",
+    "adults": "Adults", "children": "Children",
+    "name": "Your name", "phone": "Your phone (with country code)", "reply": "Reply by", "replyWa": "WhatsApp", "replyCall": "Call", "replyEmail": "Email",
+    "email": "Your email", "message": "Anything else", "messagePh": "Arrival time, airport pickup, a quiet room…",
+    "send": "Send on WhatsApp", "copy": "Copy message", "copied": "Copied", "callInstead": "or call {phone}",
+    "errDates": "Check-out must be after check-in.", "errPast": "Pick a date from today on.", "errName": "Please tell us your name.", "errPhone": "Please enter a phone number with the country code.",
+    "waIntro": "Hello Al Hanaa Hotel, I'd like to enquire about a stay.",
+    "waStay": "Stay", "waRoom": "Room", "waGuests": "Guests", "waName": "Name", "waPhone": "Phone", "waReply": "Reply by", "waNote": "Note", "waFrom": "Sent from the website"
+  },
+  "footer": {
+    "address": "23rd July Street, Salalah 211, Dhofar, Sultanate of Oman",
+    "rights": "Al Hanaa Hotel, Salalah", "made": "Website", "maps": "Google Maps"
+  },
+  "notfound": { "title": "This page is not here", "text": "The link may be old. The rooms, photos and the enquiry form are one tap away.", "home": "Back to the start" },
+  "common": { "photoOf": "Photo of {what}", "section": "Section", "back": "Back" }
+}

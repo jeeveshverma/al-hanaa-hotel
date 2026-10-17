@@ -1,0 +1,48 @@
+---
+/** "On Instagram": the real handle and follower count, six reel tiles with our own photo covers, no embed script. */
+import { useT, type Lang } from '../i18n';
+import { SITE } from '../data/site';
+import { REELS } from '../data/reels';
+import Img from './Img.astro';
+import Icon from './Icon.astro';
+import Logo from './Logo.astro';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const { t } = useT(lang);
+---
+<section class="section insta" id="instagram">
+  <div class="wrap">
+    <div class="insta-head rv">
+      <Logo variant="mark" size={44} />
+      <div>
+        <h2>{t('instagram.title')}</h2>
+        <p class="muted">@{SITE.instagram.handle} · {t('instagram.followers', { n: SITE.instagram.followers })}</p>
+      </div>
+      <a class="btn btn-gold insta-follow" href={SITE.instagram.url} target="_blank" rel="noopener"><Icon name="instagram" size={18} /> {t('instagram.follow', { handle: SITE.instagram.handle })}</a>
+    </div>
+    <p class="lead rv">{t('instagram.text')}</p>
+    <ul class="reels">
+      {REELS.map((r, i) => (
+        <li class={`rv rv-d${(i % 3) + 1}`}>
+          <a class="reel" href={r.url} target="_blank" rel="noopener" aria-label={t('instagram.reel')}>
+            <Img id={r.cover} lang={lang} ratio="4 / 5" sizes="(min-width: 960px) 16vw, 45vw" widths={[300, 480]} />
+            <span class="reel-play"><Icon name="play" size={22} /></span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+<style>
+  .insta-head { display: grid; grid-template-columns: auto 1fr; gap: 12px 16px; align-items: center; margin-bottom: 12px; }
+  .insta-head h2 { font-size: clamp(1.8rem, 5vw, 2.6rem); }
+  .insta-head p { margin: 0; }
+  .insta-follow { grid-column: 1 / -1; justify-self: start; }
+  .reels { list-style: none; margin: 24px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .reel { display: block; position: relative; }
+  .reel :global(img) { transition: transform 0.8s var(--ease); }
+  .reel:hover :global(img) { transform: scale(1.04); }
+  .reel-play { position: absolute; inset-inline-end: 10px; bottom: 10px; width: 40px; height: 40px; border-radius: 50%; background: rgba(31, 26, 22, 0.75); color: var(--gold-light); display: grid; place-items: center; }
+  @media (min-width: 640px) { .reels { grid-template-columns: repeat(3, 1fr); } .insta-head { grid-template-columns: auto 1fr auto; } .insta-follow { grid-column: auto; } }
+  @media (min-width: 960px) { .reels { grid-template-columns: repeat(6, 1fr); gap: 16px; } .reels li:nth-child(even) { margin-top: 28px; } }
+</style>

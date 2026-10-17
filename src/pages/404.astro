@@ -1,0 +1,35 @@
+---
+import Layout from '../components/Layout.astro';
+import Icon from '../components/Icon.astro';
+import Img from '../components/Img.astro';
+import { path, useT } from '../i18n';
+const { t } = useT('en');
+const { t: ta } = useT('ar');
+---
+<Layout lang="en" page="notfound" title={t('meta.notfound.title')} desc={t('meta.notfound.desc')} noindex>
+  <section class="section nf">
+    <div class="wrap nf-in">
+      <div class="nf-text">
+        <span class="num">404</span>
+        <h1>{t('notfound.title')}</h1>
+        <p class="lead">{t('notfound.text')}</p>
+        <p class="nf-ar" lang="ar" dir="rtl">{ta('notfound.title')} — {ta('notfound.text')}</p>
+        <div class="nf-links">
+          <a class="btn" href={path('en', 'home')}>{t('notfound.home')} <Icon name="arrowRight" size={18} /></a>
+          <a class="btn btn-gold" href={path('ar', 'home')} lang="ar">{ta('notfound.home')}</a>
+          <a class="btn btn-ghost" href={path('en', 'enquire')}>{t('nav.enquire')}</a>
+        </div>
+      </div>
+      <div class="frame nf-photo"><Img id="corridor" lang="en" ratio="3 / 4" sizes="(min-width: 960px) 30vw, 60vw" /></div>
+    </div>
+  </section>
+</Layout>
+<style>
+  .nf { padding-top: calc(var(--header-h) + 48px); min-height: 70vh; }
+  .nf-in { display: grid; gap: 32px; }
+  .nf-text { display: grid; gap: 12px; align-content: center; }
+  .nf-ar { font-family: 'Tajawal', sans-serif; color: var(--muted); }
+  .nf-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+  .nf-photo { width: 70%; }
+  @media (min-width: 960px) { .nf-in { grid-template-columns: 1.3fr 1fr; gap: 64px; align-items: center; } .nf-photo { width: 100%; } }
+</style>

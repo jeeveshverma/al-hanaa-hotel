@@ -1,0 +1,24 @@
+---
+/**
+ * A catalogue photo rendered through Astro's image pipeline (AVIF/WebP, srcset) with alt from
+ * src/data/photos.ts. `ratio` crops with object-fit; `sizes` follows the layout slot.
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { photo } from '../data/photos';
+import type { Lang } from '../i18n';
+
+interface Props { id: string; lang: Lang; sizes?: string; widths?: number[]; ratio?: string; loading?: 'eager' | 'lazy'; priority?: boolean; class?: string; position?: string }
+const { id, lang, sizes = '100vw', widths = [400, 640, 940], ratio, loading = 'lazy', priority = false, class: cls = '', position } = Astro.props;
+const all = import.meta.glob<{ default: ImageMetadata }>('../assets/photos/*.jpg', { eager: true });
+const src = all[`../assets/photos/${id}.jpg`]?.default;
+if (!src) throw new Error(`No photo file for id ${id}`);
+const p = photo(id);
+const style = [ratio ? `aspect-ratio:${ratio}` : '', position ? `--pos:${position}` : ''].filter(Boolean).join(';');
+---
+<div class={`photo ${cls}`} style={style} data-photo={id}>
+  <Image src={src} alt={p.alt[lang]} widths={widths.filter((w) => w <= src.width).concat(src.width)} sizes={sizes} format="avif" quality={70} loading={priority ? 'eager' : loading} fetchpriority={priority ? 'high' : undefined} decoding={priority ? 'sync' : 'async'} />
+</div>
+<style>
+  .photo img { object-position: var(--pos, 50% 50%); }
+</style>

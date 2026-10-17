@@ -1,0 +1,177 @@
+---
+/**
+ * The enquiry form. No backend: it builds a structured WhatsApp message to the hotel's booking
+ * number. Nights computed live, past dates blocked, inline validation, "Copy message" fallback,
+ * draft kept in localStorage, room pre-selected from ?room= or the data-room attribute.
+ */
+import { useT, type Lang } from '../i18n';
+import { SITE, ROOMS } from '../data/site';
+import Icon from './Icon.astro';
+interface Props { lang: Lang; compact?: boolean }
+const { lang, compact = false } = Astro.props;
+const { t } = useT(lang);
+const keys = ['waIntro', 'waStay', 'waRoom', 'waGuests', 'waName', 'waPhone', 'waReply', 'waNote', 'waFrom', 'nights', 'night', 'months', 'years', 'daily', 'monthly', 'yearly', 'adults', 'children', 'replyWa', 'replyCall', 'replyEmail', 'errDates', 'errPast', 'errName', 'errPhone', 'copied', 'copy', 'roomAny'] as const;
+const dict = Object.fromEntries(keys.map((k) => [k, t(`enquire.${k}`)]));
+const roomNames = Object.fromEntries(ROOMS.map((r) => [r.id, t(`rooms.${r.id}.name`)]));
+---
+<form class:list={['enq', compact && 'enq-compact']} data-enquiry data-dict={JSON.stringify(dict)} data-rooms={JSON.stringify(roomNames)} data-wa={SITE.whatsapp} data-lang={lang} novalidate>
+  <fieldset class="enq-stay">
+    <legend class="enq-label">{t('enquire.stayType')}</legend>
+    <div class="seg" role="radiogroup">
+      <label><input type="radio" name="stay" value="daily" checked /><span>{t('enquire.daily')}</span></label>
+      <label><input type="radio" name="stay" value="monthly" /><span>{t('enquire.monthly')}</span></label>
+      <label><input type="radio" name="stay" value="yearly" /><span>{t('enquire.yearly')}</span></label>
+    </div>
+  </fieldset>
+
+  <div class="enq-row enq-dates" data-mode="daily">
+    <label class="enq-field"><span class="enq-label" data-l-in>{t('enquire.checkin')}</span><input type="date" name="in" required /></label>
+    <label class="enq-field enq-out"><span class="enq-label">{t('enquire.checkout')}</span><input type="date" name="out" required /></label>
+    <label class="enq-field enq-dur" hidden><span class="enq-label">{t('enquire.duration')}</span>
+      <select name="dur"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="6">6</option><option value="12">12</option></select>
+    </label>
+    <p class="enq-nights" data-nights aria-live="polite"></p>
+    <p class="enq-err" data-err="dates" hidden></p>
+  </div>
+
+  <div class="enq-row">
+    <label class="enq-field"><span class="enq-label">{t('enquire.room')}</span>
+      <select name="room">
+        <option value="">{t('enquire.roomAny')}</option>
+        {ROOMS.map((r) => <option value={r.id}>{t(`rooms.${r.id}.name`)}</option>)}
+      </select>
+    </label>
+    <div class="enq-guests">
+      <label class="enq-field"><span class="enq-label">{t('enquire.adults')}</span><input type="number" name="adults" min="1" max="12" value="2" inputmode="numeric" /></label>
+      <label class="enq-field"><span class="enq-label">{t('enquire.children')}</span><input type="number" name="children" min="0" max="10" value="0" inputmode="numeric" /></label>
+    </div>
+  </div>
+
+  <div class="enq-row">
+    <label class="enq-field"><span class="enq-label">{t('enquire.name')}</span><input type="text" name="name" autocomplete="name" required /><span class="enq-err" data-err="name" hidden></span></label>
+    <label class="enq-field"><span class="enq-label">{t('enquire.phone')}</span><input type="tel" name="phone" autocomplete="tel" inputmode="tel" placeholder="+968" required /><span class="enq-err" data-err="phone" hidden></span></label>
+  </div>
+
+  <fieldset class="enq-reply">
+    <legend class="enq-label">{t('enquire.reply')}</legend>
+    <div class="seg" role="radiogroup">
+      <label><input type="radio" name="reply" value="wa" checked /><span>{t('enquire.replyWa')}</span></label>
+      <label><input type="radio" name="reply" value="call" /><span>{t('enquire.replyCall')}</span></label>
+      <label><input type="radio" name="reply" value="email" /><span>{t('enquire.replyEmail')}</span></label>
+    </div>
+    <label class="enq-field enq-email" hidden><span class="enq-label">{t('enquire.email')}</span><input type="email" name="email" autocomplete="email" inputmode="email" /></label>
+  </fieldset>
+
+  <label class="enq-field"><span class="enq-label">{t('enquire.message')}</span><textarea name="msg" rows="3" placeholder={t('enquire.messagePh')}></textarea></label>
+
+  <div class="enq-actions">
+    <button type="submit" class="btn btn-wa btn-lg"><Icon name="whatsapp" /> {t('enquire.send')}</button>
+    <button type="button" class="btn btn-gold" data-copy><Icon name="copy" size={18} /> <span>{t('enquire.copy')}</span></button>
+  </div>
+  <p class="small muted enq-call">{t('enquire.callInstead', { phone: '' })} <a href={`tel:${SITE.phone}`}>{SITE.phoneDisplay}</a></p>
+</form>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('[data-enquiry]').forEach((form) => {
+    const D = JSON.parse(form.dataset.dict!) as Record<string, string>;
+    const ROOMS = JSON.parse(form.dataset.rooms!) as Record<string, string>;
+    const lang = form.dataset.lang!;
+    const q = <T extends Element>(s: string) => form.querySelector<T>(s)!;
+    const inp = q<HTMLInputElement>('[name=in]'), out = q<HTMLInputElement>('[name=out]'), dur = q<HTMLSelectElement>('[name=dur]');
+    const nightsEl = q<HTMLElement>('[data-nights]');
+    const dates = q<HTMLElement>('.enq-dates');
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const iso = (d: Date) => d.toISOString().slice(0, 10);
+    inp.min = iso(today); out.min = iso(new Date(today.getTime() + 864e5));
+    const fmt = (s: string) => new Date(s + 'T00:00:00').toLocaleDateString(lang === 'ar' ? 'ar-OM' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const stay = () => (form.querySelector<HTMLInputElement>('[name=stay]:checked')?.value || 'daily');
+    const err = (k: string, msg: string | null) => { const el = form.querySelector<HTMLElement>(`[data-err=${k}]`)!; el.hidden = !msg; el.textContent = msg || ''; };
+    const nights = () => { const a = new Date(inp.value), b = new Date(out.value); const n = Math.round((+b - +a) / 864e5); return isNaN(n) ? 0 : n; };
+    const mode = () => {
+      const m = stay(); dates.dataset.mode = m;
+      q<HTMLElement>('.enq-out').hidden = m !== 'daily'; q<HTMLElement>('.enq-dur').hidden = m === 'daily';
+      q<HTMLElement>('[data-l-in]').textContent = m === 'daily' ? (lang === 'ar' ? 'تاريخ الوصول' : 'Check-in') : (lang === 'ar' ? 'تاريخ الانتقال' : 'Move-in date');
+      update();
+    };
+    const update = () => {
+      const m = stay();
+      if (m === 'daily') { const n = nights(); nightsEl.textContent = inp.value && out.value && n > 0 ? (n === 1 ? D.night : D.nights.replace('{n}', String(n))) : ''; }
+      else { const n = Number(dur.value); nightsEl.textContent = (m === 'monthly' ? D.months : D.years).replace('{n}', String(n)); }
+      q<HTMLElement>('.enq-email').hidden = form.querySelector<HTMLInputElement>('[name=reply]:checked')?.value !== 'email';
+      save();
+    };
+    const stayLine = () => {
+      const m = stay();
+      if (m === 'daily') { const n = nights(); return `${fmt(inp.value)} → ${fmt(out.value)} (${n === 1 ? D.night : D.nights.replace('{n}', String(n))})`; }
+      const n = Number(dur.value); return `${D[m]} · ${fmt(inp.value)} · ${(m === 'monthly' ? D.months : D.years).replace('{n}', String(n))}`;
+    };
+    const validate = () => {
+      let ok = true;
+      const m = stay();
+      if (!inp.value || new Date(inp.value) < today) { err('dates', D.errPast); ok = false; }
+      else if (m === 'daily' && (!out.value || nights() < 1)) { err('dates', D.errDates); ok = false; }
+      else err('dates', null);
+      const name = q<HTMLInputElement>('[name=name]'); if (!name.value.trim()) { err('name', D.errName); ok = false; } else err('name', null);
+      const phone = q<HTMLInputElement>('[name=phone]'); if (!/^\+?[\d\s\-()]{7,}$/.test(phone.value.trim())) { err('phone', D.errPhone); ok = false; } else err('phone', null);
+      if (!ok) form.querySelector<HTMLElement>('.enq-err:not([hidden])')?.closest('.enq-row, .enq-field')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return ok;
+    };
+    const message = () => {
+      const f = new FormData(form);
+      const room = String(f.get('room') || ''); const reply = String(f.get('reply') || 'wa');
+      const replyLabel = reply === 'wa' ? D.replyWa : reply === 'call' ? D.replyCall : `${D.replyEmail} (${f.get('email') || ''})`;
+      const lines = [D.waIntro, '', `${D.waStay}: ${stayLine()}`, `${D.waRoom}: ${room ? ROOMS[room] : D.roomAny}`, `${D.waGuests}: ${f.get('adults')} ${D.adults.toLowerCase()}${Number(f.get('children')) > 0 ? `, ${f.get('children')} ${D.children.toLowerCase()}` : ''}`, `${D.waName}: ${String(f.get('name')).trim()}`, `${D.waPhone}: ${String(f.get('phone')).trim()}`, `${D.waReply}: ${replyLabel}`];
+      const note = String(f.get('msg') || '').trim(); if (note) lines.push(`${D.waNote}: ${note}`);
+      lines.push('', `— ${D.waFrom}`);
+      return lines.join('\n');
+    };
+    form.addEventListener('submit', (e) => {
+      e.preventDefault(); if (!validate()) return;
+      const url = `https://wa.me/${form.dataset.wa}?text=${encodeURIComponent(message())}`;
+      window.open(url, '_blank', 'noopener');
+    });
+    q<HTMLButtonElement>('[data-copy]').addEventListener('click', async () => {
+      if (!validate()) return;
+      const b = q<HTMLButtonElement>('[data-copy]'); const span = b.querySelector('span')!;
+      try { await navigator.clipboard.writeText(message()); span.textContent = D.copied; setTimeout(() => (span.textContent = D.copy), 1800); } catch { prompt('', message()); }
+    });
+    // draft
+    const KEY = 'ah-enquiry';
+    const save = () => { try { const f = new FormData(form); const o: Record<string, string> = {}; f.forEach((v, k) => (o[k] = String(v))); localStorage.setItem(KEY, JSON.stringify(o)); } catch {} };
+    const load = () => { try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return; for (const [k, v] of Object.entries(o)) { const el = form.querySelector<HTMLInputElement>(`[name=${k}]`); if (!el) continue; if (el.type === 'radio') { const r = form.querySelector<HTMLInputElement>(`[name=${k}][value="${v}"]`); if (r) r.checked = true; } else el.value = String(v); } } catch {} };
+    load();
+    const pre = new URLSearchParams(location.search).get('room') || form.dataset.room; if (pre && ROOMS[pre]) q<HTMLSelectElement>('[name=room]').value = pre;
+    form.addEventListener('input', update); form.addEventListener('change', () => { mode(); });
+    inp.addEventListener('change', () => { if (stay() === 'daily' && inp.value && (!out.value || nights() < 1)) { const d = new Date(inp.value); d.setDate(d.getDate() + 1); out.value = iso(d); } update(); });
+    mode();
+  });
+</script>
+
+<style>
+  .enq { display: grid; gap: 22px; background: var(--paper); border: 1px solid var(--line); padding: clamp(18px, 4vw, 32px); position: relative; }
+  .enq::before { content: ''; position: absolute; inset: 6px; border: 1px solid var(--gold); opacity: 0.35; pointer-events: none; }
+  .enq fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .enq-label { display: block; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-text); font-weight: 600; margin-bottom: 6px; }
+  html[lang='ar'] .enq-label { letter-spacing: 0; font-size: 0.95rem; }
+  .enq-field { display: block; }
+  .enq input:not([type=radio]), .enq select, .enq textarea { width: 100%; min-height: 50px; padding: 10px 14px; border: 1px solid var(--line); background: var(--white); color: var(--ink); font: inherit; border-radius: 2px; }
+  .enq textarea { min-height: 88px; resize: vertical; }
+  .enq input:focus, .enq select:focus, .enq textarea:focus { outline: 2px solid var(--gold); outline-offset: 0; border-color: var(--gold); }
+  .enq-row { display: grid; gap: 16px; }
+  .enq-guests { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; background: var(--white); }
+  .seg label { flex: 1; position: relative; }
+  .seg input { position: absolute; opacity: 0; inset: 0; }
+  .seg span { display: grid; place-items: center; min-height: 46px; padding: 0 10px; font-weight: 600; cursor: pointer; font-size: 0.95rem; }
+  .seg label + label span { border-inline-start: 1px solid var(--line); }
+  .seg input:checked + span { background: var(--ink); color: var(--cream); }
+  .seg input:focus-visible + span { outline: 2px solid var(--gold); outline-offset: -2px; }
+  .enq-nights { margin: 0; font-family: var(--display); font-size: 1.15rem; color: var(--gold-text); min-height: 1.3em; }
+  html[lang='ar'] .enq-nights { font-family: var(--sans); font-weight: 600; font-size: 1rem; }
+  .enq-err { color: var(--danger); font-size: 0.9rem; margin: 6px 0 0; display: block; }
+  .enq-actions { display: grid; gap: 10px; }
+  .enq-call { margin: 0; }
+  .enq-call a { color: var(--ink); font-weight: 600; text-decoration: none; }
+  [hidden] { display: none !important; }
+  @media (min-width: 560px) { .enq-row { grid-template-columns: 1fr 1fr; } .enq-dates { grid-template-columns: 1fr 1fr; } .enq-nights, .enq-dates .enq-err { grid-column: 1 / -1; } .enq-actions { grid-auto-flow: column; justify-content: start; } }
+</style>

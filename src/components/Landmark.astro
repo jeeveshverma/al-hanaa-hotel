@@ -1,0 +1,39 @@
+---
+/** Gold hairline illustrations of Salalah places, drawn on a 64-unit grid in the logo's stroke. */
+interface Props { name: keyof typeof ART; size?: number; class?: string }
+const { name, size = 64, class: cls = '' } = Astro.props;
+const ART = {
+  // frankincense tree: knotted trunk, sparse crown, drops of resin
+  frankincense: '<path d="M32 58V34M32 42l-7-5M32 38l6-5M32 34l-5-6M32 34l4-7"/><path d="M14 30c0-7 6-9 9-7 1-7 11-9 14-3 5-4 13 0 11 7 6 1 6 9 0 10-1 6-9 7-12 3-4 5-13 3-14-2-6 2-10-3-8-8z"/><path d="M26 50c0 2-1 4-3 4M38 48c0 2 1 4 3 4"/><path d="M20 58h24"/>',
+  // palms over waves (Al Haffa)
+  beach: '<path d="M30 56V30M30 30c-6-8-14-8-18-4 6-2 12 0 18 4M30 30c-2-10 3-16 10-16-4 3-7 8-10 16M30 30c4-8 12-10 18-6-7-1-13 2-18 6"/><path d="M6 50c4-3 8-3 12 0s8 3 12 0 8-3 12 0 8 3 12 0M6 57c4-3 8-3 12 0s8 3 12 0 8-3 12 0 8 3 12 0"/>',
+  // mosque: dome, two minarets, arched door
+  mosque: '<path d="M14 56V28M50 56V28M12 28h4M48 28h4M14 22l2-6 2 6M50 22l-2-6 2 6M14 28v-6M50 28v-6"/><path d="M20 56V40a12 12 0 0 1 24 0v16"/><path d="M32 28v-5M32 23l2-2M28 56v-8a4 4 0 0 1 8 0v8"/><path d="M8 56h48"/>',
+  // waterfall into a pool (Wadi Darbat)
+  waterfall: '<path d="M10 20h18M28 20c0 12 2 18 6 26M24 20c0 12 2 18 6 26M20 20c0 10 1 16 4 24"/><path d="M10 20c0-4 2-8 6-8h12"/><path d="M8 50c4-3 8-3 12 0s8 3 12 0 8-3 12 0 8 3 12 0"/><path d="M40 30c6 0 12 6 12 14M44 22c8 2 12 10 12 20"/>',
+  // sea arch and cliffs (Mughsail)
+  arch: '<path d="M8 54V30c4-6 8-10 14-10 4 0 6 2 8 6 2 4 6 6 10 6 6 0 10 4 16 10v12"/><path d="M22 54V40a6 6 0 0 1 12 0v14"/><path d="M4 54h56"/><path d="M40 18c2-4 6-4 8 0M46 12c2-3 5-3 7 0"/>',
+  // castle with two towers (Taqah)
+  castle: '<path d="M10 56V26h8v30M46 56V26h8v30M18 36h28M18 56h28V36"/><path d="M10 26h2v-4h2v4h2v-4h2v4M46 26h2v-4h2v4h2v-4h2v4"/><path d="M28 56v-9a4 4 0 0 1 8 0v9M24 44h2M38 44h2"/><path d="M6 56h52"/>',
+  // spring under trees (Ayn Razat)
+  spring: '<path d="M32 16v10M26 20l6 6 6-6"/><path d="M14 36c0-8 8-10 10-6 2-6 12-6 14 0 2-4 10-2 10 6"/><path d="M10 46c4-3 8-3 12 0s8 3 12 0 8-3 12 0 8 3 12 0M14 53c4-3 8-3 12 0s8 3 12 0 8-3 12 0"/>',
+  // souq lantern and awning (Al Husn Souq)
+  souq: '<path d="M8 22h48l-4 8H12z"/><path d="M12 30v26M52 30v26M8 56h48"/><path d="M24 30v6M26 36h12v14l-6 4-6-4z"/><path d="M32 36v-4M28 42h8M28 46h8"/>',
+  // domed shrine (Nabi Ayoub)
+  shrine: '<path d="M12 56V36h40v20M8 56h48"/><path d="M16 36a16 16 0 0 1 32 0"/><path d="M32 20v-6M30 14h4"/><path d="M26 56v-9a6 6 0 0 1 12 0v9"/>',
+  // museum / ruins (Al Baleed)
+  ruins: '<path d="M10 56V34M18 56V30M26 56V36M38 56V32M46 56V38M54 56V30"/><path d="M8 34h12M24 36h8M36 32h12M44 38h12"/><path d="M6 56h52"/>',
+  // shopping bag (Gardens Mall, LuLu)
+  mall: '<path d="M14 24h36l-2 32H16z"/><path d="M24 24v-4a8 8 0 0 1 16 0v4"/><path d="M24 34h16M26 40h12"/>',
+  // bus (bus station)
+  bus: '<rect x="10" y="14" width="44" height="34" rx="6"/><path d="M10 30h44M18 48v6M46 48v6M18 40h.1M46 40h.1M22 22h20"/>',
+  // plane (airport)
+  plane: '<path d="M8 34l20-3 8-18h5l-3 18 16 3v5l-16 3 3 16h-5l-8-16-20-3z"/>',
+  // mist and hills (khareef)
+  khareef: '<path d="M6 44c6-10 14-14 22-12 6-10 18-10 24 0 4 6 4 10 4 12"/><path d="M10 20h20M18 26h26M8 32h12"/><path d="M4 50h56M10 56h44"/>',
+};
+---
+<svg class={`landmark ${cls}`} width={size} height={size} viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ART[name]} />
+<style>
+  .landmark { color: var(--gold); }
+</style>

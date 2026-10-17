@@ -1,0 +1,53 @@
+---
+/**
+ * The Al Hanaa mark, redrawn as SVG from the hotel's gold logo (two towers, the lift shaft
+ * between them, the gatehouse in front, the baseline). `lockup` adds the wordmark as live text.
+ */
+import type { Lang } from '../i18n';
+interface Props { variant?: 'mark' | 'lockup' | 'stack'; lang?: Lang; size?: number; class?: string; title?: string }
+const { variant = 'mark', lang = 'en', size = 40, class: cls = '', title = 'Al Hanaa Hotel' } = Astro.props;
+---
+{variant === 'mark' && (
+  <svg class={`logo-mark ${cls}`} width={size} height={size * 0.84} viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label={title}>
+    <path d="M14 92V19q0-9 9-9h18q9 0 9 9v73" />
+    <path d="M70 92V19q0-9 9-9h18q9 0 9 9v73" />
+    <rect x="21" y="17" width="22" height="5" fill="currentColor" stroke="none" rx="1" />
+    <rect x="77" y="17" width="22" height="5" fill="currentColor" stroke="none" rx="1" />
+    <path d="M22 41l10-10 10 10v29H22z M32 31v39 M22 47h20 M22 53h20 M22 59h20 M22 65h20" />
+    <path d="M78 41l10-10 10 10v29H78z M88 31v39 M78 47h20 M78 53h20 M78 59h20 M78 65h20" />
+    <path d="M55 18v45 M65 18v45 M55 24h10 M55 30h10 M55 36h10 M55 42h10 M55 48h10 M55 54h10 M55 60h10" stroke-width="1.8" />
+    <path d="M40 92V66q0-3 3-3h34q3 0 3 3v26" />
+    <path d="M51 78l9-8 9 8v14H51z M60 70v22 M51 84h18" />
+    <path d="M5 92h110" />
+  </svg>
+)}
+{variant === 'lockup' && (
+  <span class={`logo-lockup ${cls}`} style={`--s:${size}px`}>
+    <Astro.self variant="mark" size={size} title={title} />
+    <span class="logo-words">
+      <span class="logo-name">{lang === 'ar' ? 'الهناء' : 'Al‑Hanaa'}</span>
+      <span class="logo-sub">{lang === 'ar' ? 'فندق' : 'Hotel'}</span>
+    </span>
+  </span>
+)}
+{variant === 'stack' && (
+  <span class={`logo-stack ${cls}`}>
+    <Astro.self variant="mark" size={size} title={title} />
+    <span class="logo-name">{lang === 'ar' ? 'فندق الهناء' : 'Al‑Hanaa'}</span>
+    <span class="logo-sub">{lang === 'ar' ? 'Al‑Hanaa Hotel' : 'Hotel'}</span>
+  </span>
+)}
+
+<style>
+  .logo-mark { color: var(--gold); flex: none; }
+  .logo-lockup { display: inline-flex; align-items: center; gap: 12px; color: var(--ink); text-decoration: none; }
+  .logo-words { display: grid; line-height: 1; }
+  .logo-name { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; font-size: calc(var(--s, 40px) * 0.62); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); }
+  html[lang='ar'] .logo-name { font-family: 'Amiri', serif; text-transform: none; letter-spacing: 0; font-size: calc(var(--s, 40px) * 0.7); font-weight: 700; }
+  .logo-sub { font-family: var(--sans); font-size: calc(var(--s, 40px) * 0.24); letter-spacing: 0.34em; text-transform: uppercase; color: var(--gold-text); margin-top: 5px; display: flex; align-items: center; gap: 8px; }
+  html[lang='ar'] .logo-sub { letter-spacing: 0.1em; font-size: calc(var(--s, 40px) * 0.3); }
+  .logo-sub::before, .logo-sub::after { content: ''; height: 1px; width: 10px; background: var(--gold); opacity: 0.7; }
+  .logo-stack { display: inline-grid; justify-items: center; gap: 10px; text-align: center; color: var(--ink); text-decoration: none; }
+  .logo-stack .logo-name { font-size: 2rem; }
+  .logo-stack .logo-sub { font-size: 0.72rem; }
+</style>

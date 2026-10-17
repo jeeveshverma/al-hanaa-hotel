@@ -1,0 +1,61 @@
+---
+import Layout from '../components/Layout.astro';
+import RoomCard from '../components/RoomCard.astro';
+import Img from '../components/Img.astro';
+import Icon from '../components/Icon.astro';
+import Lattice from '../components/Lattice.astro';
+import { useT, digits, type Lang } from '../i18n';
+import { ROOMS } from '../data/site';
+import { waUrl } from '../lib/wa';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const { t } = useT(lang);
+const sizes: ('tall' | 'wide' | 'square')[] = ['tall', 'wide', 'tall', 'square', 'wide'];
+---
+<Layout lang={lang} page="rooms" title={t('meta.rooms.title')} desc={t('meta.rooms.desc')}>
+  <section class="section rooms-head">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="num">{digits(String(ROOMS.length).padStart(2, '0'), lang)}</span>
+        <h1>{t('sections.rooms')}</h1>
+        <p class="lead">{t('rooms.intro')}</p>
+        <p class="muted">{t('rooms.stay')}</p>
+      </div>
+      <div class="rooms-list">
+        {ROOMS.map((r, i) => <RoomCard id={r.id} hero={r.hero} lang={lang} index={i} size={sizes[i]} />)}
+      </div>
+    </div>
+  </section>
+  <Lattice />
+  <section class="section bath">
+    <div class="wrap bath-in">
+      <div class="bath-text rv">
+        <h2>{t('rooms.bathroom')}</h2>
+        <p class="lead">{t('rooms.bathroomText')}</p>
+        <a class="btn btn-wa" href={waUrl(t('enquire.waIntro'))} target="_blank" rel="noopener"><Icon name="whatsapp" /> {t('hero.cta')}</a>
+      </div>
+      <div class="bath-photos">
+        <div class="frame rv"><Img id="bathroom-shower" lang={lang} ratio="4 / 5" sizes="(min-width: 960px) 26vw, 50vw" /></div>
+        <div class="frame rv rv-d2"><Img id="bathroom-basin" lang={lang} ratio="4 / 5" sizes="(min-width: 960px) 26vw, 50vw" /></div>
+      </div>
+    </div>
+  </section>
+</Layout>
+<style>
+  .rooms-head { padding-top: calc(var(--header-h) + 40px); }
+  .rooms-list { display: grid; gap: 48px; }
+  @media (min-width: 720px) {
+    .rooms-list { grid-template-columns: repeat(12, 1fr); gap: 40px 32px; align-items: start; }
+    .rooms-list > :global(:nth-child(1)) { grid-column: 1 / 6; }
+    .rooms-list > :global(:nth-child(2)) { grid-column: 7 / 13; margin-top: 110px; }
+    .rooms-list > :global(:nth-child(3)) { grid-column: 2 / 7; }
+    .rooms-list > :global(:nth-child(4)) { grid-column: 8 / 12; margin-top: 90px; }
+    .rooms-list > :global(:nth-child(5)) { grid-column: 4 / 11; }
+  }
+  .bath { background: var(--paper); }
+  .bath-in { display: grid; gap: 32px; }
+  .bath-text { display: grid; gap: 14px; justify-items: start; }
+  .bath-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  .bath-photos > :nth-child(2) { margin-top: 48px; }
+  @media (min-width: 960px) { .bath-in { grid-template-columns: 1fr 1.2fr; gap: 64px; align-items: center; } }
+</style>

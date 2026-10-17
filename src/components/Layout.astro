@@ -1,0 +1,235 @@
+---
+import '@fontsource/cormorant-garamond/500.css';
+import '@fontsource/cormorant-garamond/600.css';
+import '@fontsource/cormorant-garamond/500-italic.css';
+import '@fontsource-variable/manrope';
+import '@fontsource/tajawal/400.css';
+import '@fontsource/tajawal/500.css';
+import '@fontsource/tajawal/700.css';
+import '@fontsource/amiri/400.css';
+import '@fontsource/amiri/700.css';
+import '../styles/global.css';
+import { LANGS, PAGES, path, switchLang, useT, dirOf, type Lang, type PageKey } from '../i18n';
+import { SITE } from '../data/site';
+import { waUrl, telUrl } from '../lib/wa';
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+
+interface Props { lang: Lang; page: PageKey; sub?: string; title: string; desc: string; overHero?: boolean; jsonld?: object[]; noindex?: boolean; ogImage?: string }
+const { lang, page, sub = '', title, desc, overHero = false, jsonld = [], noindex = false } = Astro.props;
+const { t } = useT(lang);
+const L = LANGS.find((l) => l.code === lang)!;
+const abs = (p: string) => new URL(p, SITE.url + '/').href.replace(/([^:])\/\//g, '$1/');
+const canonical = abs(path(lang, page, sub));
+const ogUrl = abs(`${import.meta.env.BASE_URL}og-image.jpg`);
+const other = LANGS.find((l) => l.code !== lang)!;
+const nav: [PageKey, string][] = [['rooms', t('nav.rooms')], ['gallery', t('nav.gallery')], ['salalah', t('nav.salalah')], ['enquire', t('nav.enquire')]];
+const wa = waUrl(t('enquire.waIntro'));
+
+const hotel = {
+  '@context': 'https://schema.org',
+  '@type': 'Hotel',
+  '@id': `${SITE.url}/#hotel`,
+  name: SITE.name.en,
+  alternateName: SITE.name.ar,
+  url: `${SITE.url}/`,
+  image: [ogUrl],
+  telephone: SITE.phone,
+  address: { '@type': 'PostalAddress', streetAddress: SITE.street.en, addressLocality: SITE.city.en, addressRegion: SITE.region.en, postalCode: SITE.postal, addressCountry: 'OM' },
+  geo: { '@type': 'GeoCoordinates', latitude: SITE.geo.lat, longitude: SITE.geo.lng },
+  hasMap: SITE.mapsUrl,
+  sameAs: [SITE.instagram.url, SITE.mapsUrl],
+  availableLanguage: ['en', 'ar'],
+};
+---
+<!doctype html>
+<html lang={L.hreflang} dir={dirOf(lang)} class="no-js">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>{title}</title>
+  <meta name="description" content={desc} />
+  <link rel="canonical" href={canonical} />
+  {LANGS.map((l) => <link rel="alternate" hreflang={l.hreflang} href={abs(path(l.code, page, sub))} />)}
+  <link rel="alternate" hreflang="x-default" href={abs(path('en', page, sub))} />
+  {noindex && <meta name="robots" content="noindex, follow" />}
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content={SITE.name[lang]} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={desc} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:image" content={ogUrl} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content={L.ogLocale} />
+  <meta property="og:locale:alternate" content={other.ogLocale} />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#f6f1e8" />
+  <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
+  <link rel="apple-touch-icon" href={`${import.meta.env.BASE_URL}apple-touch-icon.png`} />
+  <script is:inline>document.documentElement.classList.replace('no-js', 'js')</script>
+  <script type="application/ld+json" set:html={JSON.stringify(hotel)} />
+  {jsonld.map((j) => <script type="application/ld+json" set:html={JSON.stringify(j)} />)}
+</head>
+<body class:list={[`p-${page}`, 'has-stick', overHero && 'over-hero']}>
+  <a class="skip" href="#main">{t('nav.skip')}</a>
+  <div class="progress" aria-hidden="true"><i></i></div>
+
+  <header class:list={['hdr', overHero && 'hdr-over']} id="hdr">
+    <div class="wrap hdr-in">
+      <a class="hdr-logo" href={path(lang, 'home')} aria-label={SITE.name[lang]}>
+        <Logo variant="lockup" lang={lang} size={38} />
+      </a>
+      <nav class="hdr-nav" id="nav" aria-label="Main">
+        <ul>
+          {nav.map(([p, label]) => <li><a href={path(lang, p)} aria-current={p === page ? 'page' : undefined}>{label}</a></li>)}
+          <li class="nav-lang"><a href={switchLang(lang, page, sub)} lang={other.hreflang} hreflang={other.hreflang} aria-label={t('nav.langLabel')}>{t('nav.lang')}</a></li>
+        </ul>
+        <div class="nav-foot">
+          <a class="btn btn-wa" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /> {t('hero.cta')}</a>
+          <a class="btn btn-gold" href={telUrl}><Icon name="phone" /> {SITE.phoneDisplay}</a>
+        </div>
+      </nav>
+      <div class="hdr-actions">
+        <a class="hdr-lang" href={switchLang(lang, page, sub)} lang={other.hreflang} hreflang={other.hreflang} aria-label={t('nav.langLabel')}>{t('nav.lang')}</a>
+        <a class="btn btn-wa hdr-wa" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /><span>{t('nav.enquire')}</span></a>
+        <button class="hdr-burger" id="burger" aria-expanded="false" aria-controls="nav" aria-label={t('nav.menu')}>
+          <Icon name="menu" class="i-open" size={24} /><Icon name="close" class="i-close" size={24} />
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <slot />
+  </main>
+
+  <footer class="ftr">
+    <div class="wrap ftr-in">
+      <div class="ftr-brand">
+        <Logo variant="stack" lang={lang} size={64} />
+      </div>
+      <div class="ftr-col">
+        <p class="eyebrow">{t('map.title')}</p>
+        <p>{t('footer.address')}</p>
+        <p><a href={SITE.mapsUrl} target="_blank" rel="noopener">{t('footer.maps')} <Icon name="arrowUpRight" size={14} /></a></p>
+      </div>
+      <div class="ftr-col">
+        <p class="eyebrow">{t('nav.enquire')}</p>
+        <p><a href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" size={16} /> {SITE.whatsappDisplay}</a></p>
+        <p><a href={telUrl}><Icon name="phone" size={16} /> {SITE.phoneDisplay}</a></p>
+        <p><a href={SITE.instagram.url} target="_blank" rel="noopener"><Icon name="instagram" size={16} /> @{SITE.instagram.handle}</a></p>
+      </div>
+      <div class="ftr-col">
+        <p class="eyebrow">{t('nav.menu')}</p>
+        <ul class="ftr-nav">
+          {nav.map(([p, label]) => <li><a href={path(lang, p)}>{label}</a></li>)}
+          <li><a href={switchLang(lang, page, sub)} lang={other.hreflang}>{t('nav.lang')}</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="wrap ftr-base">
+      <span>© {new Date().getFullYear()} {t('footer.rights')}</span>
+      <span class="muted small">{SITE.street[lang]} · {SITE.city[lang]}</span>
+    </div>
+  </footer>
+
+  <div class="stick" id="stick">
+    <a class="btn btn-wa" href={wa} target="_blank" rel="noopener"><Icon name="whatsapp" /> {t('hero.cta')}</a>
+    <a class="btn ic" href={telUrl} aria-label={t('nav.call')}><Icon name="phone" /></a>
+    <a class="btn ic" href={path(lang, 'gallery')} aria-label={t('nav.gallery')}><Icon name="arrowUpRight" /></a>
+  </div>
+
+  <script>
+    const hdr = document.getElementById('hdr')!;
+    const burger = document.getElementById('burger')!;
+    const nav = document.getElementById('nav')!;
+    const stick = document.getElementById('stick')!;
+    const bar = document.querySelector('.progress i') as HTMLElement;
+    const over = document.body.classList.contains('over-hero');
+    const onScroll = () => {
+      const y = window.scrollY;
+      hdr.classList.toggle('scrolled', y > 12);
+      if (over) hdr.classList.toggle('hdr-over', y < window.innerHeight * 0.6);
+      stick.classList.toggle('show', y > window.innerHeight * 0.7);
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = `scaleX(${h > 0 ? Math.min(1, y / h) : 0})`;
+    };
+    onScroll();
+    addEventListener('scroll', onScroll, { passive: true });
+    burger.addEventListener('click', () => {
+      const open = burger.getAttribute('aria-expanded') !== 'true';
+      burger.setAttribute('aria-expanded', String(open));
+      document.body.classList.toggle('menu-open', open);
+      nav.classList.toggle('open', open);
+    });
+    nav.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => { burger.setAttribute('aria-expanded', 'false'); document.body.classList.remove('menu-open'); nav.classList.remove('open'); }));
+    // reveal on scroll
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    document.querySelectorAll('.rv').forEach((el) => io.observe(el));
+  </script>
+</body>
+</html>
+
+<style is:global>
+  .progress { position: fixed; top: 0; inset-inline: 0; height: 2px; z-index: 80; pointer-events: none; }
+  .progress i { display: block; height: 100%; background: var(--gold); transform-origin: 0 50%; transform: scaleX(0); transition: transform 0.15s linear; }
+  html[dir='rtl'] .progress i { transform-origin: 100% 50%; }
+
+  .hdr { position: fixed; top: 0; inset-inline: 0; z-index: 70; height: var(--header-h); transition: background 0.4s var(--ease), box-shadow 0.4s var(--ease), color 0.3s; color: var(--ink); }
+  .hdr.scrolled { background: rgba(246, 241, 232, 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 1px 0 var(--line); }
+  .hdr-over { color: var(--cream); }
+  .hdr-over .logo-name, .hdr-over .logo-sub { color: var(--cream); }
+  .hdr-over .logo-mark { color: var(--gold-light); }
+  .hdr-over.scrolled { color: var(--ink); }
+  .hdr-over.scrolled .logo-name { color: var(--ink); } .hdr-over.scrolled .logo-sub { color: var(--gold-text); }
+  .hdr-in { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .hdr-logo { text-decoration: none; display: inline-flex; }
+  .hdr-actions { display: flex; align-items: center; gap: 8px; }
+  .hdr-lang { font-weight: 600; text-decoration: none; padding: 8px 10px; font-size: 0.95rem; }
+  .hdr-wa { min-height: 42px; padding-inline: 14px; font-size: 0.92rem; }
+  .hdr-wa span { display: none; }
+  @media (min-width: 400px) { .hdr-wa span { display: inline; } }
+  .hdr-burger { width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 0; cursor: pointer; color: inherit; }
+  .hdr-burger .i-close, .hdr-burger[aria-expanded='true'] .i-open { display: none; }
+  .hdr-burger[aria-expanded='true'] .i-close { display: block; }
+  /* mobile menu: full-screen cream panel */
+  .hdr-nav { position: fixed; inset: 0; top: var(--header-h); background: var(--cream); padding: 24px var(--gutter) 40px; display: none; flex-direction: column; justify-content: space-between; overflow: auto; }
+  .hdr-nav.open { display: flex; }
+  html.no-js .hdr-nav { position: static; display: block; padding: 0; }
+  .hdr-nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  .hdr-nav li a { display: block; font-family: var(--display); font-size: clamp(2rem, 8vw, 2.8rem); color: var(--ink); text-decoration: none; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  html[lang='ar'] .hdr-nav li a { font-family: var(--sans); font-weight: 500; font-size: 1.8rem; }
+  .hdr-nav li a[aria-current='page'] { color: var(--gold-text); }
+  .nav-foot { display: grid; gap: 10px; margin-top: 24px; }
+  body.menu-open { overflow: hidden; }
+  body.menu-open .hdr { background: var(--cream); color: var(--ink); }
+  body.menu-open .hdr .logo-name { color: var(--ink); }
+  @media (min-width: 960px) {
+    .hdr-burger, .nav-foot, .nav-lang { display: none; }
+    .hdr-nav { position: static; display: block; background: none; padding: 0; overflow: visible; }
+    .hdr-nav ul { display: flex; gap: 28px; }
+    .hdr-nav li a { font-family: var(--sans); font-size: 0.98rem; font-weight: 600; padding: 6px 0; border: 0; color: inherit; position: relative; }
+    html[lang='ar'] .hdr-nav li a { font-size: 1.05rem; }
+    .hdr-nav li a::after { content: ''; position: absolute; inset-inline: 0; bottom: 0; height: 1px; background: var(--gold); transform: scaleX(0); transition: transform 0.3s var(--ease); transform-origin: 0 50%; }
+    .hdr-nav li a:hover::after, .hdr-nav li a[aria-current='page']::after { transform: none; }
+    /* desktop: the hero is split, so the header reads in ink over the cream half and the photo gets a top fade */
+    .hdr-over { color: var(--ink); }
+    .hdr-over .logo-name { color: var(--ink); } .hdr-over .logo-sub { color: var(--gold-text); } .hdr-over .logo-mark { color: var(--gold); }
+    .hdr-over .hdr-nav li a { color: var(--cream); }
+    .hdr-over .hdr-lang { color: var(--cream); }
+    .hdr-over.scrolled .hdr-nav li a, .hdr-over.scrolled .hdr-lang { color: var(--ink); }
+  }
+
+  .ftr { background: var(--night); color: #cfc5b8; padding-block: 56px 28px; margin-top: clamp(40px, 8vw, 96px); position: relative; z-index: 1; }
+  .ftr .logo-name { color: var(--cream); } .ftr .logo-sub { color: var(--gold-light); }
+  .ftr-in { display: grid; gap: 32px; }
+  .ftr-col p { margin: 0 0 8px; }
+  .ftr-col a { color: var(--cream); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+  .ftr-col a:hover { color: var(--gold-light); }
+  .ftr .eyebrow { color: var(--gold-light); margin-bottom: 12px; }
+  .ftr-nav { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .ftr-base { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.9rem; }
+  @media (min-width: 720px) { .ftr-in { grid-template-columns: 1.2fr 1fr 1fr 0.8fr; gap: 40px; } }
+</style>

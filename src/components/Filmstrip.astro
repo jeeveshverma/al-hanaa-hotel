@@ -1,0 +1,200 @@
+---
+/**
+ * The slidable filmstrip: a horizontal scroll-snap strip of photos in their own aspect ratios,
+ * drag with the mouse, swipe on touch, arrow keys, vertical wheel → horizontal on desktop,
+ * a gold hairline progress bar, caption + counter, and a full-bleed lightbox on tap.
+ * `items` are catalogue ids; optional `filters` adds chips that show/hide by group.
+ */
+import { useT, digits, type Lang } from '../i18n';
+import { photo, type Group } from '../data/photos';
+import Img from './Img.astro';
+import Icon from './Icon.astro';
+interface Props { items: string[]; lang: Lang; filters?: boolean; id?: string; height?: number }
+const { items, lang, filters = false, id = 'strip', height = 420 } = Astro.props;
+const { t } = useT(lang);
+const list = items.map((i) => photo(i));
+const chips: { key: Group | 'all'; label: string; groups: Group[] }[] = [
+  { key: 'all', label: t('gallery.all'), groups: [] },
+  { key: 'suite', label: t('gallery.roomsFilter'), groups: ['suite', 'double', 'twin', 'family', 'flat'] },
+  { key: 'spaces', label: t('gallery.spaces'), groups: ['spaces'] },
+  { key: 'bathroom', label: t('gallery.bathroom'), groups: ['bathroom'] },
+  { key: 'outside', label: t('gallery.outside'), groups: ['outside'] },
+];
+---
+<div class="strip" id={id} data-strip style={`--h:${height}px`} dir="ltr">
+  {filters && (
+    <div class="strip-chips" role="group" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      {chips.map((c, i) => <button type="button" class:list={['chip', i === 0 && 'on']} data-groups={c.groups.join(' ')} aria-pressed={i === 0 ? 'true' : 'false'}>{c.label}</button>)}
+    </div>
+  )}
+  <div class="strip-scroll" tabindex="0" aria-label={t('sections.gallery')}>
+    <ul class="strip-track">
+      {list.map((p, i) => (
+        <li class="strip-item" data-group={p.group} data-i={i}>
+          <button type="button" class="strip-btn" aria-label={`${t('gallery.open')}: ${p.alt[lang]}`} data-open={i}>
+            <Img id={p.id} lang={lang} sizes="(min-width: 960px) 40vw, 85vw" widths={[480, 720, 940]} />
+          </button>
+          <p class="caption strip-cap" dir={lang === 'ar' ? 'rtl' : 'ltr'}>{(p.caption ?? p.alt)[lang]}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+  <div class="strip-foot" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+    <div class="strip-bar" aria-hidden="true"><i></i></div>
+    <div class="strip-ctl">
+      <span class="strip-count num" aria-live="polite" data-count>{digits('01', lang)} / {digits(String(list.length).padStart(2, '0'), lang)}</span>
+      <button type="button" class="strip-arrow" data-prev aria-label={t('gallery.prev')}><Icon name="arrowLeft" /></button>
+      <button type="button" class="strip-arrow" data-next aria-label={t('gallery.next')}><Icon name="arrowRight" /></button>
+    </div>
+  </div>
+
+  <div class="lb" hidden data-lb dir={lang === 'ar' ? 'rtl' : 'ltr'} role="dialog" aria-modal="true" aria-label={t('sections.gallery')}>
+    <button type="button" class="lb-close" data-close aria-label={t('gallery.close')}><Icon name="close" size={26} /></button>
+    <div class="lb-stage" data-stage>
+      <ul class="lb-track" dir="ltr">
+        {list.map((p, i) => (
+          <li class="lb-item" data-i={i}>
+            <Img id={p.id} lang={lang} sizes="100vw" widths={[720, 940]} loading="lazy" />
+          </li>
+        ))}
+      </ul>
+    </div>
+    <div class="lb-foot">
+      <p class="lb-cap" data-lbcap></p>
+      <div class="lb-ctl">
+        <span class="num" data-lbcount></span>
+        <button type="button" class="strip-arrow" data-lbprev aria-label={t('gallery.prev')}><Icon name="arrowLeft" /></button>
+        <button type="button" class="strip-arrow" data-lbnext aria-label={t('gallery.next')}><Icon name="arrowRight" /></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const CAPS: Record<string, string[]> = {};
+  document.querySelectorAll<HTMLElement>('[data-strip]').forEach((root) => {
+    const scroll = root.querySelector<HTMLElement>('.strip-scroll')!;
+    const track = root.querySelector<HTMLElement>('.strip-track')!;
+    const items = () => [...root.querySelectorAll<HTMLElement>('.strip-item')].filter((li) => !li.hidden);
+    const bar = root.querySelector<HTMLElement>('.strip-bar i')!;
+    const count = root.querySelector<HTMLElement>('[data-count]')!;
+    const ar = document.documentElement.lang.startsWith('ar');
+    const d = (n: number | string) => ar ? String(n).replace(/\d/g, (x) => '٠١٢٣٤٥٦٧٨٩'[Number(x)]) : String(n);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    let cur = 0;
+    const update = () => {
+      const max = scroll.scrollWidth - scroll.clientWidth;
+      bar.style.transform = `scaleX(${max > 0 ? scroll.scrollLeft / max : 1})`;
+      const vis = items();
+      const mid = scroll.scrollLeft + scroll.clientWidth * 0.35;
+      let best = 0; vis.forEach((li, i) => { if (li.offsetLeft <= mid) best = i; });
+      cur = best;
+      count.textContent = `${d(pad(best + 1))} / ${d(pad(vis.length))}`;
+    };
+    scroll.addEventListener('scroll', update, { passive: true });
+    addEventListener('resize', update);
+    update();
+    const go = (dir: number) => {
+      const vis = items(); const n = Math.min(vis.length - 1, Math.max(0, cur + dir));
+      scroll.scrollTo({ left: vis[n].offsetLeft - 8, behavior: 'smooth' });
+    };
+    root.querySelector('[data-prev]')!.addEventListener('click', () => go(-1));
+    root.querySelector('[data-next]')!.addEventListener('click', () => go(1));
+    scroll.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { go(1); e.preventDefault(); } if (e.key === 'ArrowLeft') { go(-1); e.preventDefault(); } });
+    // vertical wheel → horizontal on pointer devices
+    scroll.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && matchMedia('(hover: hover)').matches) {
+        const max = scroll.scrollWidth - scroll.clientWidth;
+        const atEdge = (e.deltaY < 0 && scroll.scrollLeft <= 0) || (e.deltaY > 0 && scroll.scrollLeft >= max - 1);
+        if (!atEdge) { scroll.scrollLeft += e.deltaY; e.preventDefault(); }
+      }
+    }, { passive: false });
+    // mouse drag
+    let down = false, sx = 0, sl = 0, moved = false;
+    scroll.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') return; down = true; moved = false; sx = e.clientX; sl = scroll.scrollLeft; scroll.classList.add('drag'); });
+    addEventListener('pointermove', (e) => { if (!down) return; const dx = e.clientX - sx; if (Math.abs(dx) > 4) moved = true; scroll.scrollLeft = sl - dx; });
+    addEventListener('pointerup', () => { down = false; scroll.classList.remove('drag'); });
+    track.addEventListener('click', (e) => { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
+    // filters
+    root.querySelectorAll<HTMLButtonElement>('.chip').forEach((chip) => chip.addEventListener('click', () => {
+      root.querySelectorAll('.chip').forEach((c) => { c.classList.remove('on'); c.setAttribute('aria-pressed', 'false'); });
+      chip.classList.add('on'); chip.setAttribute('aria-pressed', 'true');
+      const groups = chip.dataset.groups!.split(' ').filter(Boolean);
+      root.querySelectorAll<HTMLElement>('.strip-item').forEach((li) => { li.hidden = groups.length > 0 && !groups.includes(li.dataset.group!); });
+      scroll.scrollTo({ left: 0 }); update();
+    }));
+    // lightbox
+    const lb = root.querySelector<HTMLElement>('[data-lb]')!;
+    const stage = lb.querySelector<HTMLElement>('[data-stage]')!;
+    const lbItems = [...lb.querySelectorAll<HTMLElement>('.lb-item')];
+    const lbcap = lb.querySelector<HTMLElement>('[data-lbcap]')!;
+    const lbcount = lb.querySelector<HTMLElement>('[data-lbcount]')!;
+    const caps = [...root.querySelectorAll<HTMLElement>('.strip-cap')].map((c) => c.textContent || '');
+    let lbIdx = 0, lastFocus: HTMLElement | null = null;
+    const lbUpdate = () => {
+      const i = Math.round(stage.scrollLeft / stage.clientWidth);
+      lbIdx = Math.min(lbItems.length - 1, Math.max(0, i));
+      lbcap.textContent = caps[lbIdx]; lbcount.textContent = `${d(pad(lbIdx + 1))} / ${d(pad(lbItems.length))}`;
+    };
+    const open = (i: number) => {
+      lastFocus = document.activeElement as HTMLElement; lb.hidden = false; document.body.style.overflow = 'hidden';
+      requestAnimationFrame(() => { stage.scrollTo({ left: lbItems[i].offsetLeft }); lbUpdate(); (lb.querySelector('[data-close]') as HTMLElement).focus(); });
+    };
+    const close = () => { lb.hidden = true; document.body.style.overflow = ''; lastFocus?.focus(); };
+    root.querySelectorAll<HTMLButtonElement>('[data-open]').forEach((b) => b.addEventListener('click', () => { if (!moved) open(Number(b.dataset.open)); }));
+    lb.querySelector('[data-close]')!.addEventListener('click', close);
+    lb.querySelector('[data-lbprev]')!.addEventListener('click', () => stage.scrollTo({ left: lbItems[Math.max(0, lbIdx - 1)].offsetLeft, behavior: 'smooth' }));
+    lb.querySelector('[data-lbnext]')!.addEventListener('click', () => stage.scrollTo({ left: lbItems[Math.min(lbItems.length - 1, lbIdx + 1)].offsetLeft, behavior: 'smooth' }));
+    stage.addEventListener('scroll', lbUpdate, { passive: true });
+    lb.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); if (e.key === 'ArrowRight') (lb.querySelector('[data-lbnext]') as HTMLElement).click(); if (e.key === 'ArrowLeft') (lb.querySelector('[data-lbprev]') as HTMLElement).click(); });
+    // swipe down to close
+    let ty = 0; stage.addEventListener('touchstart', (e) => { ty = e.touches[0].clientY; }, { passive: true });
+    stage.addEventListener('touchend', (e) => { if (e.changedTouches[0].clientY - ty > 90) close(); }, { passive: true });
+    CAPS[root.id] = caps;
+  });
+</script>
+
+<style>
+  .strip { position: relative; }
+  .strip-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; padding-inline: var(--gutter); }
+  .chip { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 8px 14px; font-size: 0.9rem; font-weight: 600; cursor: pointer; color: var(--body); }
+  .chip.on { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+  .strip-scroll { overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; cursor: grab; padding-inline: var(--gutter); scroll-padding-inline: var(--gutter); }
+  .strip-scroll::-webkit-scrollbar { display: none; }
+  .strip-scroll.drag { cursor: grabbing; scroll-snap-type: none; }
+  .strip-scroll.drag :global(img) { pointer-events: none; }
+  .strip-track { list-style: none; margin: 0; padding: 0 var(--gutter) 0 0; display: flex; gap: 14px; width: max-content; }
+  .strip-item { scroll-snap-align: start; flex: none; width: auto; }
+  .strip-item[hidden] { display: none; }
+  .strip-btn { display: block; padding: 0; border: 0; background: none; cursor: pointer; height: min(var(--h), 62vh); }
+  .strip-btn :global(.photo) { height: 100%; }
+  .strip-btn :global(img) { height: 100%; width: auto; max-width: 86vw; object-fit: cover; display: block; }
+  .strip-cap { margin: 10px 0 0; font-size: 0.95rem; max-width: 86vw; }
+  .strip-foot { padding-inline: var(--gutter); margin-top: 18px; display: grid; gap: 12px; }
+  .strip-bar { height: 1px; background: var(--line); }
+  .strip-bar i { display: block; height: 1px; background: var(--gold); transform-origin: 0 50%; transform: scaleX(0); transition: transform 0.2s linear; margin-top: -0.5px; }
+  html[dir='rtl'] .strip-bar i { transform-origin: 100% 50%; }
+  .strip-ctl { display: flex; align-items: center; gap: 10px; }
+  .strip-count { margin-inline-end: auto; font-size: 1.05rem; }
+  .strip-arrow { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--gold); background: transparent; display: grid; place-items: center; cursor: pointer; color: var(--ink); transition: background 0.25s; }
+  .strip-arrow:hover { background: var(--gold-pale); }
+  html[dir='rtl'] .strip-arrow :global(svg) { transform: scaleX(-1); }
+  @media (min-width: 960px) { .strip-chips, .strip-foot { padding-inline: calc((100vw - var(--container)) / 2 + var(--gutter)); } .strip-scroll { padding-inline: calc((100vw - var(--container)) / 2 + var(--gutter)); scroll-padding-inline: calc((100vw - var(--container)) / 2 + var(--gutter)); } .strip-btn :global(img) { max-width: 60vw; } }
+
+  .lb { position: fixed; inset: 0; z-index: 90; background: var(--night); color: var(--cream); display: grid; grid-template-rows: 1fr auto; }
+  .lb[hidden] { display: none; }
+  .lb-close { position: absolute; top: calc(10px + env(safe-area-inset-top)); inset-inline-end: 10px; z-index: 2; width: 48px; height: 48px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.25); background: rgba(31,26,22,0.6); color: var(--cream); display: grid; place-items: center; cursor: pointer; }
+  .lb-stage { overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; display: block; }
+  .lb-stage::-webkit-scrollbar { display: none; }
+  .lb-track { list-style: none; margin: 0; padding: 0; display: flex; height: 100%; }
+  .lb-item { flex: none; width: 100vw; height: 100%; scroll-snap-align: center; display: grid; place-items: center; padding: 56px 12px 12px; }
+  .lb-item :global(.photo) { background: none; height: 100%; width: 100%; display: grid; place-items: center; }
+  .lb-item :global(img) { max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; }
+  .lb-foot { padding: 12px var(--gutter) calc(14px + env(safe-area-inset-bottom)); display: flex; align-items: end; justify-content: space-between; gap: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .lb-cap { margin: 0; font-family: var(--display); font-style: italic; color: rgba(246,241,232,0.85); font-size: 1.05rem; }
+  html[lang='ar'] .lb-cap { font-style: normal; }
+  .lb-ctl { display: flex; align-items: center; gap: 10px; flex: none; }
+  .lb-ctl .num { color: var(--gold-light); margin-inline-end: 6px; }
+  .lb .strip-arrow { color: var(--cream); border-color: rgba(212,181,106,0.6); }
+  .lb .strip-arrow:hover { background: rgba(255,255,255,0.08); }
+</style>

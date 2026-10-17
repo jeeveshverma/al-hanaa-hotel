@@ -1,0 +1,32 @@
+---
+import { path, useT, type Lang } from '../i18n';
+import type { RoomId } from '../data/site';
+import Img from './Img.astro';
+import Icon from './Icon.astro';
+interface Props { id: RoomId; hero: string; lang: Lang; index: number; size?: 'tall' | 'wide' | 'square' }
+const { id, hero, lang, index, size = 'tall' } = Astro.props;
+const { t } = useT(lang);
+const ratio = size === 'tall' ? '4 / 5' : size === 'wide' ? '16 / 10' : '1 / 1';
+---
+<a class={`rc rc-${size} rv`} href={path(lang, 'rooms', id)} style={`--i:${index}`}>
+  <div class="rc-photo frame">
+    <Img id={hero} lang={lang} ratio={ratio} sizes="(min-width: 960px) 40vw, 92vw" />
+  </div>
+  <div class="rc-body">
+    <span class="num">{String(index + 1).padStart(2, '0')}</span>
+    <h3>{t(`rooms.${id}.name`)}</h3>
+    <p class="rc-short">{t(`rooms.${id}.short`)}</p>
+    <span class="rc-more">{t('rooms.walk')} <Icon name="arrowRight" size={16} class="rtl-flip" /></span>
+  </div>
+</a>
+<style>
+  .rc { display: grid; gap: 16px; text-decoration: none; color: inherit; }
+  .rc-photo { overflow: visible; }
+  .rc-photo :global(.photo img) { transition: transform 1.2s var(--ease); }
+  .rc:hover .rc-photo :global(.photo img) { transform: scale(1.04); }
+  .rc-body { display: grid; gap: 4px; padding-inline: 2px; }
+  .rc h3 { font-size: clamp(1.5rem, 4.5vw, 2rem); }
+  .rc-short { margin: 0; color: var(--muted); }
+  .rc-more { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 0.9rem; font-weight: 600; color: var(--gold-text); }
+  html[dir='rtl'] :global(.rtl-flip) { transform: scaleX(-1); }
+</style>

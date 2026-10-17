@@ -1,0 +1,96 @@
+---
+import Layout from '../components/Layout.astro';
+import MapSection from '../components/MapSection.astro';
+import Khareef from '../components/Khareef.astro';
+import Landmark from '../components/Landmark.astro';
+import Icon from '../components/Icon.astro';
+import Img from '../components/Img.astro';
+import Lattice from '../components/Lattice.astro';
+import { path, useT, digits, type Lang } from '../i18n';
+import { PLACES } from '../data/places';
+import { SITE } from '../data/site';
+import { fromHotel, fmtKm } from '../lib/geo';
+import { waUrl } from '../lib/wa';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const { t } = useT(lang);
+const places = PLACES.filter((p) => !p.transport).map((p) => { const g = fromHotel(p.at); return { ...p, ...g, kmText: fmtKm(g.km, lang), mins: g.mode === 'foot' ? t('salalah.onFoot', { min: g.min }) : t('salalah.byCar', { min: g.min }), dirs: `https://www.google.com/maps/dir/?api=1&origin=${SITE.geo.lat},${SITE.geo.lng}&destination=${p.at.lat},${p.at.lng}` }; });
+const transport = PLACES.filter((p) => p.transport).map((p) => { const g = fromHotel(p.at); return { ...p, ...g, kmText: fmtKm(g.km, lang), mins: g.mode === 'foot' ? t('salalah.onFoot', { min: g.min }) : t('salalah.byCar', { min: g.min }) }; });
+---
+<Layout lang={lang} page="salalah" title={t('meta.salalah.title')} desc={t('meta.salalah.desc')}>
+  <section class="section sal-head">
+    <div class="wrap sal-in">
+      <div class="section-head">
+        <span class="num">{t('sections.salalah')}</span>
+        <h1>{t('nav.salalah')}</h1>
+        <p class="lead">{t('salalah.intro')}</p>
+      </div>
+      <div class="sal-photo frame rv"><Img id="exterior-night" lang={lang} ratio="4 / 3" sizes="(min-width: 960px) 40vw, 100vw" /><p class="caption">{t('hero.eyebrow')}</p></div>
+    </div>
+  </section>
+  <Khareef lang={lang} />
+
+  <section class="section">
+    <div class="wrap">
+      <ol class="places">
+        {places.map((p, i) => (
+          <li class={`place rv rv-d${(i % 3) + 1}`}>
+            <Landmark name={p.art} size={72} />
+            <div class="place-body">
+              <span class="num">{digits(String(i + 1).padStart(2, '0'), lang)}</span>
+              <h2>{p.name[lang]}</h2>
+              <p>{p.blurb[lang]}</p>
+              <p class="place-facts"><span>{t('salalah.distance', { km: p.kmText })} {t('salalah.fromHotel')}</span><span>{t('map.bearing', { dir: t(`map.${p.dir}`) })}</span><span>{p.mins}</span></p>
+              <a class="place-dir" href={p.dirs} target="_blank" rel="noopener">{t('salalah.directions')} <Icon name="arrowUpRight" size={14} /></a>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <Lattice />
+
+  <section class="section howto">
+    <div class="wrap">
+      <div class="section-head rv"><h2>{t('salalah.howTo')}</h2></div>
+      <ul class="howto-list">
+        {transport.map((p, i) => (
+          <li class={`rv rv-d${i + 1}`}><Landmark name={p.art} size={56} /><div><strong>{p.name[lang]}</strong><p>{p.blurb[lang]}</p><p class="small muted">{t('salalah.distance', { km: p.kmText })} · {p.mins}</p></div></li>
+        ))}
+        <li class="rv rv-d3"><Icon name="car" size={40} /><div><strong>{lang === 'ar' ? 'بالسيارة' : 'By road'}</strong><p>{t('salalah.byRoad')}</p></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <MapSection lang={lang} />
+
+  <section class="section sal-cta">
+    <div class="wrap">
+      <p class="rv"><a class="btn btn-wa btn-lg" href={waUrl(t('enquire.waIntro'))} target="_blank" rel="noopener"><Icon name="whatsapp" /> {t('hero.cta')}</a> <a class="btn btn-ghost" href={path(lang, 'rooms')}>{t('rooms.all')} <Icon name="arrowRight" size={18} class="rtl-flip" /></a></p>
+    </div>
+  </section>
+</Layout>
+<style>
+  .sal-head { padding-top: calc(var(--header-h) + 40px); padding-bottom: 32px; }
+  .sal-in { display: grid; gap: 28px; }
+  .sal-photo .caption { margin-top: 10px; }
+  @media (min-width: 960px) { .sal-in { grid-template-columns: 1.1fr 1fr; gap: 64px; align-items: center; } .sal-in .section-head { margin-bottom: 0; } }
+  .places { list-style: none; margin: 0; padding: 0; display: grid; gap: 36px; }
+  .place { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: start; border-top: 1px solid var(--line); padding-top: 24px; }
+  .place-body { display: grid; gap: 6px; }
+  .place h2 { font-size: clamp(1.5rem, 4.5vw, 2.1rem); }
+  .place p { margin: 0; }
+  .place-facts { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--gold-text); font-weight: 600; font-size: 0.92rem; }
+  .place-dir { font-weight: 600; color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; }
+  @media (min-width: 720px) { .places { grid-template-columns: 1fr 1fr; gap: 40px 48px; } }
+  .howto { background: var(--paper); }
+  .howto-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 24px; }
+  .howto-list li { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; }
+  .howto-list :global(.icon) { color: var(--gold); }
+  .howto-list strong { font-family: var(--display); font-size: 1.3rem; color: var(--ink); font-weight: 500; }
+  html[lang='ar'] .howto-list strong { font-family: var(--sans); font-weight: 600; font-size: 1.1rem; }
+  .howto-list p { margin: 4px 0 0; }
+  @media (min-width: 720px) { .howto-list { grid-template-columns: repeat(3, 1fr); gap: 32px; } }
+  .sal-cta p { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+</style>

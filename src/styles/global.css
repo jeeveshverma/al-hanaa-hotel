@@ -1,0 +1,137 @@
+/* Al Hanaa Hotel — design tokens and base styles. Mobile first; desktop widens from here. */
+:root {
+  --cream: #f6f1e8;
+  --paper: #fbf8f3;
+  --cream-deep: #efe7d8;
+  --gold: #b8963e;
+  --gold-light: #d4b56a;
+  --gold-pale: #e9dcb9;
+  --gold-text: #8a6a24;
+  --ink: #2b2520;
+  --body: #4a413a;
+  --muted: #7a6f65;
+  --line: #e2d8c6;
+  --taupe: #a08b75;
+  --night: #1f1a16;
+  --night-2: #2a231e;
+  --wa: #1f7a4d;
+  --wa-dark: #176038;
+  --danger: #a4322a;
+  --white: #fff;
+
+  --display: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+  --sans: 'Manrope Variable', 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --gutter: 16px;
+  --container: 1240px;
+  --header-h: 64px;
+  --radius: 3px;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --shadow: 0 24px 60px -30px rgba(43, 37, 32, 0.45), 0 2px 6px rgba(43, 37, 32, 0.06);
+}
+html[lang='ar'] {
+  --display: 'Amiri', 'Noto Naskh Arabic', 'Times New Roman', serif;
+  --sans: 'Tajawal', 'Noto Sans Arabic', system-ui, 'Segoe UI', Tahoma, sans-serif;
+}
+@media (min-width: 640px) { :root { --gutter: 24px; } }
+@media (min-width: 960px) { :root { --header-h: 76px; --gutter: 32px; } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 8px); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--body);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  position: relative;
+}
+html[lang='ar'] body { font-size: 18px; line-height: 1.75; }
+/* paper grain: a very faint noise so the cream is not dead flat */
+body::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .17 0 0 0 0 .14 0 0 0 0 .12 0 0 0 .055 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+}
+img, svg, video { max-width: 100%; height: auto; display: block; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+::selection { background: var(--gold-pale); color: var(--ink); }
+
+h1, h2, h3, .display { font-family: var(--display); font-weight: 500; color: var(--ink); line-height: 1.08; letter-spacing: -0.01em; margin: 0; }
+html[lang='ar'] h1, html[lang='ar'] h2, html[lang='ar'] h3, html[lang='ar'] .display { font-weight: 400; letter-spacing: 0; line-height: 1.35; }
+h1 { font-size: clamp(2.4rem, 9vw, 5.6rem); }
+h2 { font-size: clamp(2rem, 6vw, 3.6rem); }
+h3 { font-size: clamp(1.4rem, 3.2vw, 1.9rem); }
+p { margin: 0 0 1em; }
+.lead { font-size: 1.12em; color: var(--body); max-width: 36em; }
+.muted { color: var(--muted); }
+.small { font-size: 0.9em; }
+.caption { font-family: var(--display); font-style: italic; font-size: 1.05em; color: var(--muted); }
+html[lang='ar'] .caption { font-style: normal; }
+.eyebrow { font-family: var(--sans); font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold-text); font-weight: 600; }
+html[lang='ar'] .eyebrow { letter-spacing: 0; font-size: 0.95rem; }
+.num { font-family: var(--display); color: var(--gold); font-size: 1rem; letter-spacing: 0.1em; }
+
+.wrap { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter); }
+.section { padding-block: clamp(56px, 10vw, 128px); position: relative; }
+.section-head { display: grid; gap: 10px; margin-bottom: clamp(28px, 5vw, 56px); max-width: 44em; }
+.section-head .num { display: flex; align-items: center; gap: 12px; }
+.section-head .num::after { content: ''; height: 1px; width: 48px; background: var(--gold); opacity: 0.7; }
+
+/* gold hairline */
+.rule { height: 1px; background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent); opacity: 0.8; border: 0; margin: 0; }
+
+/* buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 52px; padding: 0 22px; border-radius: 2px; border: 1px solid var(--ink);
+  background: var(--ink); color: var(--cream); font-weight: 600; font-size: 1rem; text-decoration: none;
+  cursor: pointer; transition: background 0.25s var(--ease), border-color 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.btn:hover { background: var(--night-2); }
+.btn:active { transform: translateY(1px); }
+.btn-gold { background: transparent; color: var(--ink); border-color: var(--gold); }
+.btn-gold:hover { background: var(--gold-pale); }
+.btn-wa { background: var(--wa); border-color: var(--wa); color: #fff; }
+.btn-wa:hover { background: var(--wa-dark); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--ink); padding-inline: 8px; text-decoration: underline; text-underline-offset: 5px; text-decoration-color: var(--gold); }
+.btn svg { width: 20px; height: 20px; flex: none; }
+.btn-lg { min-height: 58px; padding-inline: 28px; font-size: 1.05rem; }
+
+/* reveal on scroll */
+.rv { opacity: 0; transform: translateY(18px); transition: opacity 0.9s var(--ease), transform 0.9s var(--ease); }
+.rv.in, html.no-js .rv { opacity: 1; transform: none; }
+.rv-d1 { transition-delay: 0.1s; } .rv-d2 { transition-delay: 0.2s; } .rv-d3 { transition-delay: 0.3s; }
+@media (prefers-reduced-motion: reduce) { .rv { opacity: 1; transform: none; transition: none; } }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.skip { position: absolute; inset-inline-start: 8px; top: -60px; z-index: 100; background: var(--ink); color: var(--cream); padding: 10px 14px; }
+.skip:focus { top: 8px; }
+
+/* photo frame: thin gold line a few px outside the image, like the designs */
+.frame { position: relative; }
+.frame::after { content: ''; position: absolute; inset: -7px; border: 1px solid var(--gold); opacity: 0.55; pointer-events: none; }
+.photo { background: var(--cream-deep); overflow: hidden; border-radius: var(--radius); }
+.photo img { width: 100%; height: 100%; object-fit: cover; }
+
+/* lattice divider (Omani mashrabiya motif) */
+.lattice { display: flex; justify-content: center; padding-block: 8px; color: var(--gold); opacity: 0.8; }
+.lattice svg { width: min(240px, 60vw); height: 22px; }
+
+/* sticky mobile bar */
+.stick { position: fixed; inset-inline: 0; bottom: 0; z-index: 60; display: grid; grid-template-columns: 1fr auto auto; gap: 8px;
+  padding: 10px var(--gutter) calc(10px + env(safe-area-inset-bottom)); background: rgba(251, 248, 243, 0.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid var(--line); transform: translateY(110%); transition: transform 0.4s var(--ease); }
+.stick.show { transform: none; }
+.stick .btn { min-height: 48px; }
+.stick .ic { width: 48px; padding: 0; background: var(--paper); border-color: var(--line); color: var(--ink); }
+@media (min-width: 960px) { .stick { display: none; } }
+body.has-stick { padding-bottom: 76px; }
+@media (min-width: 960px) { body.has-stick { padding-bottom: 0; } }

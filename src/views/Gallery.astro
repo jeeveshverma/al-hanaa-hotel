@@ -1,0 +1,46 @@
+---
+import Layout from '../components/Layout.astro';
+import Filmstrip from '../components/Filmstrip.astro';
+import Img from '../components/Img.astro';
+import Icon from '../components/Icon.astro';
+import { path, useT, digits, type Lang } from '../i18n';
+import { PHOTOS } from '../data/photos';
+import { waUrl } from '../lib/wa';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const { t } = useT(lang);
+// strip order: outside first, then spaces, rooms by group, bathrooms — the walk a guest would take
+const order = ['outside', 'spaces', 'suite', 'double', 'twin', 'family', 'flat', 'bathroom'];
+const items = [...PHOTOS].sort((a, b) => order.indexOf(a.group) - order.indexOf(b.group)).map((p) => p.id);
+// the mosaic below the strip: a few photos at mixed sizes
+const mosaic = ['suite-living-a', 'exterior-night', 'twin-b', 'bathroom-shower', 'stairwell', 'flat-living', 'double-velvet', 'corridor'];
+---
+<Layout lang={lang} page="gallery" title={t('meta.gallery.title')} desc={t('meta.gallery.desc')}>
+  <section class="section gal-head">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="num">{digits(String(PHOTOS.length), lang)} {t('nav.gallery').toLowerCase()}</span>
+        <h1>{t('sections.gallery')}</h1>
+        <p class="lead">{t('gallery.intro')}</p>
+      </div>
+    </div>
+  </section>
+  <Filmstrip items={items} lang={lang} filters id="gallery-strip" height={520} />
+
+  <section class="section">
+    <div class="wrap">
+      <ul class="mosaic">
+        {mosaic.map((id, i) => <li class={`m${i} rv`}><Img id={id} lang={lang} ratio={i % 3 === 0 ? '4 / 5' : i % 3 === 1 ? '1 / 1' : '4 / 3'} sizes="(min-width: 960px) 30vw, 48vw" /></li>)}
+      </ul>
+      <p class="gal-cta rv"><a class="btn btn-wa btn-lg" href={waUrl(t('enquire.waIntro'))} target="_blank" rel="noopener"><Icon name="whatsapp" /> {t('hero.cta')}</a> <a class="btn btn-ghost" href={path(lang, 'rooms')}>{t('rooms.all')} <Icon name="arrowRight" size={18} class="rtl-flip" /></a></p>
+    </div>
+  </section>
+</Layout>
+<style>
+  .gal-head { padding-top: calc(var(--header-h) + 40px); padding-bottom: 24px; }
+  .gal-head .section-head { margin-bottom: 0; }
+  .mosaic { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  .mosaic li:nth-child(3n+2) { margin-top: 40px; }
+  .gal-cta { margin-top: 48px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  @media (min-width: 960px) { .mosaic { grid-template-columns: repeat(3, 1fr); gap: 24px; } .mosaic li:nth-child(3n+2) { margin-top: 80px; } .mosaic li:nth-child(3n) { margin-top: 24px; } }
+</style>

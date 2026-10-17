@@ -1,0 +1,33 @@
+---
+/** Date-aware ribbon: in season it says so; otherwise the countdown. The text is set on the client because the site is static. */
+import { useT, type Lang } from '../i18n';
+import { SITE } from '../data/site';
+import Landmark from './Landmark.astro';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const { t } = useT(lang);
+---
+<div class="khareef" data-khareef data-start={`${SITE.khareef.start.month}-${SITE.khareef.start.day}`} data-end={`${SITE.khareef.end.month}-${SITE.khareef.end.day}`} data-now={t('khareef.now')} data-soon={t('khareef.soon')} data-later={t('khareef.later')} data-lang={lang}>
+  <div class="wrap khareef-in">
+    <Landmark name="khareef" size={36} />
+    <p data-text>{t('khareef.later')}</p>
+  </div>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-khareef]').forEach((el) => {
+    const [sm, sd] = el.dataset.start!.split('-').map(Number), [em, ed] = el.dataset.end!.split('-').map(Number);
+    const now = new Date(); const y = now.getFullYear();
+    const start = new Date(y, sm - 1, sd), end = new Date(y, em - 1, ed);
+    const p = el.querySelector('[data-text]')!;
+    const ar = el.dataset.lang === 'ar';
+    const d = (n: number) => ar ? String(n).replace(/\d/g, (x) => '٠١٢٣٤٥٦٧٨٩'[Number(x)]) : String(n);
+    if (now >= start && now <= end) p.textContent = el.dataset.now!;
+    else { const next = now < start ? start : new Date(y + 1, sm - 1, sd); const days = Math.ceil((+next - +now) / 864e5); p.textContent = days <= 120 ? el.dataset.soon!.replace('{days}', d(days)) : el.dataset.later!; }
+  });
+</script>
+<style>
+  .khareef { background: var(--paper); border-block: 1px solid var(--line); }
+  .khareef-in { display: flex; align-items: center; gap: 14px; padding-block: 10px; }
+  .khareef p { margin: 0; font-family: var(--display); font-size: 1.1rem; color: var(--ink); }
+  html[lang='ar'] .khareef p { font-family: var(--sans); font-size: 1rem; font-weight: 500; }
+</style>

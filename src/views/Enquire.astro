@@ -1,0 +1,56 @@
+---
+import Layout from '../components/Layout.astro';
+import EnquiryForm from '../components/EnquiryForm.astro';
+import Reviews from '../components/Reviews.astro';
+import Img from '../components/Img.astro';
+import Icon from '../components/Icon.astro';
+import { useT, type Lang } from '../i18n';
+import { SITE } from '../data/site';
+import { telUrl } from '../lib/wa';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const { t } = useT(lang);
+---
+<Layout lang={lang} page="enquire" title={t('meta.enquire.title')} desc={t('meta.enquire.desc')}>
+  <section class="section enq-head">
+    <div class="wrap enq-in">
+      <div class="enq-text">
+        <div class="section-head">
+          <span class="num">{t('nav.enquire')}</span>
+          <h1>{t('enquire.title')}</h1>
+          <p class="lead">{t('enquire.text')}</p>
+        </div>
+        <blockquote class="note rv">
+          <p>{t('enquire.note')}</p>
+          <footer>— {t('enquire.noteSign')}</footer>
+        </blockquote>
+        <ul class="enq-contacts rv">
+          <li><Icon name="whatsapp" size={18} /> <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noopener">{SITE.whatsappDisplay}</a></li>
+          <li><Icon name="phone" size={18} /> <a href={telUrl}>{SITE.phoneDisplay}</a></li>
+          <li><Icon name="pin" size={18} /> <a href={SITE.mapsUrl} target="_blank" rel="noopener">{t('footer.address')}</a></li>
+          <li><Icon name="instagram" size={18} /> <a href={SITE.instagram.url} target="_blank" rel="noopener">@{SITE.instagram.handle}</a></li>
+        </ul>
+        <div class="enq-photo frame rv"><Img id="exterior-night" lang={lang} ratio="4 / 3" sizes="(min-width: 960px) 40vw, 100vw" /></div>
+      </div>
+      <div class="enq-form rv rv-d1">
+        <EnquiryForm lang={lang} />
+      </div>
+    </div>
+  </section>
+  <Reviews lang={lang} />
+</Layout>
+<style>
+  .enq-head { padding-top: calc(var(--header-h) + 40px); }
+  .enq-in { display: grid; gap: 40px; }
+  .note { margin: 0 0 28px; padding: 0 0 0 18px; border-inline-start: 2px solid var(--gold); font-family: var(--display); font-size: 1.3rem; color: var(--ink); line-height: 1.4; }
+  html[dir='rtl'] .note { padding: 0 18px 0 0; }
+  html[lang='ar'] .note { font-family: var(--sans); font-size: 1.1rem; font-weight: 500; }
+  .note p { margin: 0 0 8px; }
+  .note footer { font-family: var(--sans); font-size: 0.85rem; color: var(--muted); letter-spacing: 0.06em; }
+  .enq-contacts { list-style: none; margin: 0 0 28px; padding: 0; display: grid; gap: 10px; }
+  .enq-contacts li { display: flex; align-items: center; gap: 10px; }
+  .enq-contacts :global(.icon) { color: var(--gold); flex: none; }
+  .enq-contacts a { text-decoration: none; color: var(--ink); font-weight: 600; }
+  .enq-photo { display: none; }
+  @media (min-width: 960px) { .enq-in { grid-template-columns: 1fr 1.1fr; gap: 72px; align-items: start; } .enq-photo { display: block; margin-top: 12px; } }
+</style>

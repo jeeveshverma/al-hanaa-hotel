@@ -1,0 +1,245 @@
+---
+/**
+ * "Where we are": a stylised SVG map of the city at true scale with the hotel at the centre,
+ * roads that draw themselves on scroll, a dropped pin and radiating lines to each landmark;
+ * numbered markers tie the map, the compass dial and the legend together. The dial puts every
+ * place at its true bearing on a log-distance ring. Tap a number anywhere for distance,
+ * direction, minutes and a Google Maps directions link.
+ */
+import { useT, digits, type Lang } from '../i18n';
+import { PLACES } from '../data/places';
+import { SITE } from '../data/site';
+import { fromHotel, fmtKm } from '../lib/geo';
+import Icon from './Icon.astro';
+interface Props { lang: Lang; compact?: boolean }
+const { lang, compact = false } = Astro.props;
+const { t } = useT(lang);
+
+const K = 48; // px per km
+const W = 640, H = 460, CX = 330, CY = 236;
+const cosLat = Math.cos((SITE.geo.lat * Math.PI) / 180);
+const xy = (lat: number, lng: number) => ({ x: CX + (lng - SITE.geo.lng) * 111.32 * cosLat * K, y: CY - (lat - SITE.geo.lat) * 110.57 * K });
+const INSET = 34;
+const places = PLACES.map((p, i) => {
+  const g = fromHotel(p.at);
+  const pos = xy(p.at.lat, p.at.lng);
+  const mins = g.mode === 'foot' ? t('salalah.onFoot', { min: g.min }) : t('salalah.byCar', { min: g.min });
+  const dirWord = t(`map.${g.dir}`);
+  const dirs = `https://www.google.com/maps/dir/?api=1&origin=${SITE.geo.lat},${SITE.geo.lng}&destination=${p.at.lat},${p.at.lng}`;
+  const r = g.km < 1 ? 44 * g.km : 44 + (126 * Math.log10(g.km)) / Math.log10(60);
+  const a = ((g.deg - 90) * Math.PI) / 180;
+  const dial = { x: 200 + r * Math.cos(a), y: 200 + r * Math.sin(a) };
+  const inMap = pos.x > INSET && pos.x < W - INSET && pos.y > INSET && pos.y < H - INSET;
+  let edge = pos, side: 'l' | 'r' | 't' | 'b' = 'r';
+  if (!inMap) {
+    const dx = pos.x - CX, dy = pos.y - CY;
+    const sx = Math.abs((W / 2 - INSET) / dx), sy = Math.abs((H / 2 - INSET) / dy);
+    const s = Math.min(sx, sy);
+    edge = { x: CX + dx * s, y: CY + dy * s };
+    side = sx < sy ? (dx > 0 ? 'r' : 'l') : (dy > 0 ? 'b' : 't');
+  }
+  // label side: above for the nearest places (they crowd the pin), flipped inward near the map edges
+  const lblSide: 'l' | 'r' | 'u' = g.km < 1.2 ? 'u' : pos.x < 150 ? 'r' : pos.x > W - 150 ? 'l' : pos.x >= CX ? 'r' : 'l';
+  const n = i + 1;
+  return { ...p, ...g, n, nText: digits(n, lang), pos, inMap, edge, side, lblSide, dial, mins, dirWord, dirs, kmText: fmtKm(g.km, lang), short: p.name[lang].replace(/ \(.*\)/, '') };
+});
+const coastY = xy(17.0, 0).y;
+const near = places.filter((p) => p.inMap);
+const far = places.filter((p) => !p.inMap);
+const airport = xy(17.0471634, 54.0880886);
+---
+<section class:list={['section mapsec', compact && 'mapsec-compact']} id="map" data-map>
+  <div class="wrap">
+    <div class="section-head rv">
+      <span class="num"><Icon name="compass" size={16} /> {SITE.plusCode}</span>
+      <h2>{t('map.title')}</h2>
+      <p class="lead">{t('map.text')}</p>
+    </div>
+    <div class="map-grid">
+      <figure class="citymap rv" aria-label={t('map.title')}>
+        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('map.title')} dir="ltr">
+          <defs>
+            <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9d7d9" stop-opacity=".1" /><stop offset="1" stop-color="#b3c7cb" stop-opacity=".6" /></linearGradient>
+          </defs>
+          <path class="sea" d={`M0 ${coastY + 6} C 80 ${coastY - 4}, 160 ${coastY + 10}, 240 ${coastY + 2} S 400 ${coastY + 10}, 480 ${coastY + 2} S 600 ${coastY + 8}, ${W} ${coastY + 2} V ${H} H 0 Z`} fill="url(#sea)" />
+          <path class="shore draw" d={`M0 ${coastY + 6} C 80 ${coastY - 4}, 160 ${coastY + 10}, 240 ${coastY + 2} S 400 ${coastY + 10}, 480 ${coastY + 2} S 600 ${coastY + 8}, ${W} ${coastY + 2}`} />
+          <path class="road draw" d={`M0 ${CY} H ${W}`} />
+          <path class="road road-2 draw" d={`M${CX + 10} ${CY} V ${coastY - 6}`} />
+          <path class="road road-2 draw" d={`M${CX - 46} ${CY} C ${CX - 70} ${CY - 70}, ${airport.x + 40} ${airport.y + 50}, ${airport.x} ${airport.y}`} />
+          <text class="road-label" x="14" y={CY + 30}>{SITE.street[lang]}</text>
+          <text class="sea-label" x={W - 14} y={H - 16} text-anchor="end">{lang === 'ar' ? 'بحر العرب' : 'Arabian Sea'}</text>
+          {near.map((p, i) => <line class="ray draw" style={`--i:${i}`} x1={CX} y1={CY} x2={p.pos.x} y2={p.pos.y} />)}
+          {near.map((p, i) => (
+            <g class="poi" style={`--i:${i}`} data-poi={p.id} tabindex="0" role="button" aria-label={`${p.name[lang]}: ${p.kmText} km`}>
+              <circle cx={p.pos.x} cy={p.pos.y} r="9" />
+              <text class="n" x={p.pos.x} y={p.pos.y + 3.5} text-anchor="middle">{p.nText}</text>
+              <text class="lbl" x={p.pos.x + (p.lblSide === 'r' ? 14 : p.lblSide === 'l' ? -14 : 0)} y={p.pos.y + (p.lblSide === 'u' ? -14 : 4)} text-anchor={p.lblSide === 'r' ? 'start' : p.lblSide === 'l' ? 'end' : 'middle'}>{p.short} <tspan class="km">{p.kmText} km</tspan></text>
+            </g>
+          ))}
+          {far.map((p, i) => (
+            <g class="far poi" style={`--i:${near.length + i}`} data-poi={p.id} tabindex="0" role="button" aria-label={`${p.name[lang]}: ${p.kmText} km`} transform={`translate(${p.edge.x} ${p.edge.y})`}>
+              <g transform={`rotate(${p.deg})`}><path d="M0 -13 L5 -3 H-5 Z" /></g>
+              <text class="lbl" x={p.side === 'l' ? 12 : p.side === 'r' ? -12 : 0} y={p.side === 't' ? 24 : p.side === 'b' ? -14 : 4} text-anchor={p.side === 'l' ? 'start' : p.side === 'r' ? 'end' : 'middle'}>{p.nText} · {p.short} · {p.kmText} km</text>
+              <text class="n-only" x="0" y={p.side === 't' ? 24 : p.side === 'b' ? -10 : 4} text-anchor="middle">{p.nText}</text>
+            </g>
+          ))}
+          <g class="hotel">
+            <circle class="pulse" cx={CX} cy={CY} r="14" />
+            <path class="pin" d={`M${CX} ${CY} c-9 -11 -9 -22 0 -24 c9 2 9 13 0 24 z`} />
+            <circle cx={CX} cy={CY - 15} r="3" fill="#f6f1e8" stroke="none" />
+            <text class="hotel-label" x={CX} y={CY + 24} text-anchor="middle">{SITE.name[lang]}</text>
+          </g>
+          <g class="north" transform="translate(28 30)"><path d="M0 -12 L6 6 L0 2 L-6 6 Z" /><text y="22" text-anchor="middle">N</text></g>
+          <g class="scale" transform={`translate(${W - 24 - K} ${H - 40})`}><path d={`M0 0 H ${K}`} /><path d="M0 -4 V4" /><path d={`M${K} -4 V4`} /><text x={K / 2} y="14" text-anchor="middle">1 km</text></g>
+        </svg>
+      </figure>
+
+      <div class="dial-wrap rv rv-d1">
+        <svg class="dial" viewBox="0 0 400 400" role="img" aria-label={t('map.title')} dir="ltr">
+          {[44, 86, 128, 170].map((r) => <circle class="ring" cx="200" cy="200" r={r} />)}
+          <text class="ring-label" x="206" y="160">1 km</text><text class="ring-label" x="206" y="118">5 km</text><text class="ring-label" x="206" y="76">20 km</text><text class="ring-label" x="206" y="34">60 km</text>
+          <path class="cross" d="M200 20 V380 M20 200 H380" />
+          <text class="card" x="200" y="14" text-anchor="middle">N</text><text class="card" x="391" y="204" text-anchor="middle">E</text><text class="card" x="200" y="395" text-anchor="middle">S</text><text class="card" x="9" y="204" text-anchor="middle">W</text>
+          {places.map((p, i) => (
+            <g class="dpoi" style={`--i:${i}`} data-poi={p.id} tabindex="0" role="button" aria-label={`${p.name[lang]}: ${p.kmText} km, ${p.dirWord}`}>
+              <line class="dray" x1="200" y1="200" x2={p.dial.x} y2={p.dial.y} />
+              <circle cx={p.dial.x} cy={p.dial.y} r="10" />
+              <text x={p.dial.x} y={p.dial.y + 4} text-anchor="middle">{p.nText}</text>
+            </g>
+          ))}
+          <circle class="dhotel" cx="200" cy="200" r="7" />
+        </svg>
+        <div class="dial-info" data-info aria-live="polite">
+          <p class="dial-hint">{t('map.text')}</p>
+        </div>
+      </div>
+    </div>
+
+    <ol class:list={['plist', compact && 'plist-compact']}>
+      {places.map((p) => (
+        <li class="plist-item" data-poi={p.id}>
+          <span class="plist-n">{p.nText}</span>
+          <div class="plist-body">
+            <div class="plist-head"><strong>{p.name[lang]}</strong><span class="num">{p.kmText} km</span></div>
+            {!compact && <p class="small muted">{t('map.bearing', { dir: p.dirWord })} · {p.mins}</p>}
+            {!compact && <a class="plist-dir" href={p.dirs} target="_blank" rel="noopener">{t('salalah.directions')} <Icon name="arrowUpRight" size={14} /></a>}
+          </div>
+        </li>
+      ))}
+    </ol>
+    <p class="map-open"><a class="btn btn-gold" href={SITE.mapsUrl} target="_blank" rel="noopener"><Icon name="pin" size={18} /> {t('map.open')}</a></p>
+  </div>
+  <script type="application/json" data-places set:html={JSON.stringify(Object.fromEntries(places.map((p) => [p.id, { name: p.name[lang], km: p.kmText, dir: t('map.bearing', { dir: p.dirWord }), mins: p.mins, url: p.dirs, blurb: p.blurb[lang], n: p.nText }])))} />
+  <span class="sr-only" data-dirlabel>{t('salalah.directions')}</span>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-map]').forEach((root) => {
+    const data = JSON.parse(root.querySelector('[data-places]')!.textContent || '{}') as Record<string, { name: string; km: string; dir: string; mins: string; url: string; blurb: string; n: string }>;
+    const info = root.querySelector<HTMLElement>('[data-info]')!;
+    const dirLabel = root.querySelector('[data-dirlabel]')!.textContent!.trim();
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { root.classList.add('in'); io.disconnect(); } }), { threshold: 0.2 });
+    io.observe(root.querySelector('.citymap')!);
+    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+    const select = (id: string) => {
+      const d = data[id]; if (!d) return;
+      root.querySelectorAll('[data-poi]').forEach((el) => el.classList.toggle('sel', (el as HTMLElement).dataset.poi === id));
+      info.innerHTML = `<p class="dial-name"><span class="dial-n">${esc(d.n)}</span> ${esc(d.name)}</p><p class="dial-facts">${esc(d.km)} km · ${esc(d.dir)} · ${esc(d.mins)}</p><p class="dial-blurb">${esc(d.blurb)}</p><a class="dial-dir" href="${esc(d.url)}" target="_blank" rel="noopener">${esc(dirLabel)} ↗</a>`;
+    };
+    root.querySelectorAll<HTMLElement>('[data-poi]').forEach((el) => {
+      el.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('a')) return; select(el.dataset.poi!); });
+      el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(el.dataset.poi!); } });
+    });
+  });
+</script>
+
+<style>
+  .map-grid { display: grid; gap: 28px; }
+  .citymap { margin: 0; background: var(--paper); border: 1px solid var(--line); position: relative; }
+  .citymap::after { content: ''; position: absolute; inset: 6px; border: 1px solid var(--gold); opacity: 0.3; pointer-events: none; }
+  .citymap svg { width: 100%; height: auto; display: block; font-family: var(--sans); }
+  .shore, .road { fill: none; stroke: var(--gold); stroke-width: 1.2; }
+  .road-2 { stroke-width: 0.8; opacity: 0.7; }
+  .road-label, .sea-label { font-size: 11px; fill: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+  html[lang='ar'] .road-label, html[lang='ar'] .sea-label { letter-spacing: 0; font-size: 13px; }
+  .ray { stroke: var(--gold); stroke-width: 0.7; stroke-dasharray: 3 3; opacity: 0.8; pointer-events: none; }
+  .poi { cursor: pointer; }
+  .poi circle { fill: var(--cream); stroke: var(--gold); stroke-width: 1.4; transition: fill 0.25s; }
+  .poi .n { font-size: 10px; font-weight: 700; fill: var(--ink); pointer-events: none; }
+  .poi .lbl { font-size: 11.5px; fill: var(--ink); }
+  .poi .km { fill: var(--muted); font-size: 10px; }
+  .poi.sel circle, .poi:hover circle { fill: var(--gold-pale); }
+  .poi.sel .n { fill: var(--ink); }
+  .poi:focus-visible { outline: none; } .poi:focus-visible circle { stroke-width: 3; }
+  .far path { fill: var(--gold); }
+  .far .lbl { font-size: 10.5px; fill: var(--muted); }
+  .far .n-only { display: none; font-size: 10px; font-weight: 700; fill: var(--gold-text); }
+  .hotel .pin { fill: var(--ink); stroke: none; }
+  .hotel .pulse { fill: var(--gold); opacity: 0; }
+  .hotel-label { font-size: 12px; fill: var(--ink); font-weight: 700; }
+  .north path { fill: var(--gold); } .north text, .scale text { font-size: 10px; fill: var(--muted); }
+  .scale path { stroke: var(--muted); stroke-width: 1; }
+  /* phones: the SVG is ~60 % smaller, so only numbers stay on the map; names live in the legend */
+  @media (max-width: 720px) {
+    .poi .lbl { display: none; }
+    .far .n-only { display: block; }
+    .poi circle { r: 12; }
+    .poi .n { font-size: 13px; }
+    .road-label, .sea-label, .north text, .scale text { font-size: 13px; }
+    .hotel-label { font-size: 15px; }
+  }
+  .draw { stroke-dasharray: 1400; stroke-dashoffset: 1400; }
+  .poi, .far, .hotel { opacity: 0; }
+  .in .draw { animation: draw 1.6s var(--ease) forwards; }
+  .in .ray { animation: draw 1.2s var(--ease) forwards; animation-delay: calc(1.3s + var(--i) * 0.12s); }
+  .in .hotel { animation: pop 0.6s var(--ease) 1s forwards; }
+  .in .hotel .pulse { animation: pulse 2.4s ease-out 1.6s 3; }
+  .in .poi, .in .far { animation: fade 0.6s var(--ease) forwards; animation-delay: calc(1.6s + var(--i) * 0.12s); }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes pop { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: none; } }
+  @keyframes fade { to { opacity: 1; } }
+  @keyframes pulse { 0% { opacity: 0.5; r: 8; } 100% { opacity: 0; r: 34; } }
+  @media (prefers-reduced-motion: reduce) { .draw { stroke-dashoffset: 0; } .poi, .far, .hotel { opacity: 1; } .in * { animation: none !important; } }
+
+  .dial-wrap { display: grid; gap: 14px; }
+  .dial { width: 100%; max-width: 440px; height: auto; margin-inline: auto; display: block; font-family: var(--sans); }
+  .ring { fill: none; stroke: var(--line); }
+  .ring:first-of-type { stroke: var(--gold); opacity: 0.6; }
+  .ring-label { font-size: 9px; fill: var(--muted); }
+  .cross { stroke: var(--line); stroke-dasharray: 2 4; }
+  .card { font-size: 11px; fill: var(--gold-text); font-weight: 700; }
+  .dray { stroke: var(--gold); stroke-width: 0.8; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .dpoi { cursor: pointer; }
+  .dpoi circle { fill: var(--cream); stroke: var(--gold); stroke-width: 1.4; transition: fill 0.3s; }
+  .dpoi text { font-size: 10.5px; font-weight: 700; fill: var(--ink); pointer-events: none; }
+  .dpoi.sel circle, .dpoi:hover circle { fill: var(--gold-pale); }
+  .dpoi.sel .dray { opacity: 1; }
+  .dpoi:focus-visible { outline: none; } .dpoi:focus-visible circle { stroke-width: 3; }
+  .dhotel { fill: var(--ink); }
+  .dial-info { min-height: 92px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .dial-hint { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  .dial-info :global(.dial-name) { margin: 0 0 4px; font-family: var(--display); font-size: 1.5rem; color: var(--ink); display: flex; align-items: center; gap: 10px; }
+  html[lang='ar'] .dial-info :global(.dial-name) { font-family: var(--sans); font-weight: 600; font-size: 1.25rem; }
+  .dial-info :global(.dial-n), .plist-n { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--gold); font-family: var(--sans); font-size: 0.8rem; font-weight: 700; color: var(--ink); flex: none; }
+  .dial-info :global(.dial-facts) { margin: 0 0 6px; color: var(--gold-text); font-weight: 600; }
+  .dial-info :global(.dial-blurb) { margin: 0 0 8px; color: var(--body); }
+  .dial-info :global(.dial-dir) { color: var(--ink); font-weight: 600; }
+  @media (min-width: 960px) { .map-grid { grid-template-columns: 1.45fr 1fr; gap: 40px; align-items: start; } }
+
+  .plist { list-style: none; margin: 32px 0 0; padding: 0; display: grid; gap: 12px; }
+  .plist-item { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; border-top: 1px solid var(--line); padding-top: 12px; cursor: pointer; }
+  .plist-item.sel { border-top-color: var(--gold); }
+  .plist-item.sel .plist-n { background: var(--gold-pale); }
+  .plist-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+  .plist-head strong { font-family: var(--display); font-size: 1.2rem; color: var(--ink); font-weight: 500; }
+  html[lang='ar'] .plist-head strong { font-family: var(--sans); font-weight: 600; font-size: 1.05rem; }
+  .plist-body p { margin: 2px 0 6px; }
+  .plist-dir { font-size: 0.9rem; font-weight: 600; color: var(--gold-text); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+  .plist-compact { gap: 6px 24px; margin-top: 24px; }
+  .plist-compact .plist-item { padding-top: 6px; border-top: 0; align-items: center; }
+  .plist-compact .plist-head strong { font-family: var(--sans); font-size: 0.95rem; font-weight: 500; }
+  .plist-compact .plist-head .num { font-size: 0.85rem; }
+  @media (min-width: 720px) { .plist { grid-template-columns: 1fr 1fr; gap: 12px 40px; } .plist-compact { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 1100px) { .plist { grid-template-columns: repeat(3, 1fr); } .plist-compact { grid-template-columns: repeat(4, 1fr); } }
+  .map-open { margin-top: 28px; }
+</style>

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.astro/
+work/cuts/
+work/source/
+work/shots/
+.DS_Store
+work/
