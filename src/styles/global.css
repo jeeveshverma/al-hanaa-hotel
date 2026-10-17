@@ -78,7 +78,7 @@ p { margin: 0 0 1em; }
 html[lang='ar'] .caption { font-style: normal; }
 .eyebrow { font-family: var(--sans); font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold-text); font-weight: 600; }
 html[lang='ar'] .eyebrow { letter-spacing: 0; font-size: 0.95rem; }
-.num { font-family: var(--display); color: var(--gold); font-size: 1rem; letter-spacing: 0.1em; }
+.num { font-family: var(--display); color: var(--gold-text); font-size: 1rem; letter-spacing: 0.1em; }
 
 .wrap { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter); }
 .section { padding-block: clamp(56px, 10vw, 128px); position: relative; }
